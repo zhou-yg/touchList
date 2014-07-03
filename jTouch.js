@@ -2,12 +2,14 @@
 
 		children = new Array();
 
-		var direction = 0;
-		var directionLR = 0;
 		//左右 =1  上下 = 2
+		var direction = 0;
+		//左 -1 右+1
+		var directionLR = 0;
+		//左边的滚动数，最高 children.length
+		var leftCounts=1;  
 
 		var childW;
-
 		var windowType;
 
 		var getChildes = function() {
@@ -92,17 +94,19 @@
 
 			var down = function(c) {
 
-				var currentLeft = $(children[0]).css("left");
-				if (currentLeft == "auto") {
-					preLeft = 0;
-				} else {
-					preLeft = Number(currentLeft.substring(0, currentLeft.length - 2));
+				if (!ifDown) {
+
+					var currentLeft = $(children[0]).css("left");
+					if (currentLeft == "auto") {
+						preLeft = 0;
+					} else {
+						preLeft = Number(currentLeft.substring(0, currentLeft.length - 2));
+					}
+					preX = c[0];
+					preY = c[1];
+
+					ifDown = true;
 				}
-				preX = c[0];
-				preY = c[1];
-
-				ifDown = true;
-
 			};
 			var move = function(c) {
 				if (ifDown) {
@@ -140,11 +144,10 @@
 
 						if (Math.abs(w) > childW * 0.2 && !(preLeft >= 0 && w > 0)) {
 							directionLR = w >= 0 ? 1 : -1;
-						}else{
+						} else {
 							directionLR = 0;
 						}
-						console.log("preX",preX);
-
+						
 						for (var i = 0; i < children.length; i++) {
 							$(children[i]).css("left", preLeft + w + "px");
 						};
@@ -161,22 +164,28 @@
 				}
 			};
 			var up = function(c) {
+				
+				console.log(leftCounts,children.length);
 
-				console.log(direction,directionLR);
-				if(directionLR && direction){
-
+				if (directionLR && direction && (leftCounts<children.length || (leftCounts==children.length && directionLR>0))) {
+					
+					if(directionLR >0){
+						leftCounts --;
+					}else{
+						leftCounts ++;
+					}
 					var p = slide(directionLR, preLeft);
 
 					p.done(function() {
-
+						ifDown = false;
 					});
 
-				}else{
+				} else {
 					for (var i = 0; i < children.length; i++) {
 						$(children[i]).css("left", preLeft + "px");
 					};
+					ifDown = false;
 				}
-				ifDown = false;
 				direction = 0;
 				directionLR = 0;
 			};
