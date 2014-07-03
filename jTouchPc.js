@@ -3,7 +3,6 @@
 		children = new Array();
 
 		var direction = 0;
-		var directionLR = 0;
 		//左右 =1  上下 = 2
 
 		var childW;
@@ -35,22 +34,25 @@
 				events = eventTypesM;
 				ifDevice = false;
 			}
-			for (var i = 0; i < events.length; i++) {( function(i) {
-						if (i == 2) {
-							window["on" + events[i]] = function(e) {
-								eventsHandle(i, [0, 0]);
-							};
-						} else {
-							container["on" + events[i]] = function(e) {
+			for (var i = 0; i < events.length; i++) {
+				( function(i) {
+					if (i == 2) {
+						window["on" + events[i]] = function(e) {
+							eventsHandle(-1, [0, 0]);
+						};
+					}
+					container["on" + events[i]] = function(e) {
+	
+						var eventO = ifDevice ? e.touches[0] : e;
+						var x = eventO.pageX - $(this).offset().left;
+						var y = eventO.pageY - $(this).offset().top;
 
-								var eventO = ifDevice ? e.touches[0] : e;
-								var x = eventO.pageX - $(this).offset().left;
-								var y = eventO.pageY - $(this).offset().top;
-
-								eventsHandle(i, [x, y]);
-							};
+						if (i == 1) {
+							windowType = eventO.type;
 						}
-					}(i));
+						eventsHandle(i, [x, y]);
+					};
+				}(i));
 			};
 
 			return {
@@ -61,7 +63,8 @@
 					if (direction == 1 && !this.ifBaneWindow) {
 
 						window["on" + windowType] = function(e) {
-
+							e.preventDefault();
+							e.stopPropagation();
 						};
 						this.ifBaneWindow = true;
 
@@ -121,11 +124,11 @@
 						}
 						moveFn = movehandle(direction);
 					} else {
-						moveFn(c);
+						moveFn.call(moveFn, c);
 					}
 
-					$("#cx").text(preX);
-					$("#cy").text(preY);
+					$("#cx").text(x - preX);
+					$("#cy").text(y - preY);
 
 					var oor = setEvents.onAndOff();
 				}
@@ -137,14 +140,7 @@
 					var vertHandler = function(c) {
 
 						var w = c[0] - preX;
-
-						if (Math.abs(w) > childW * 0.2 && !(preLeft >= 0 && w > 0)) {
-							directionLR = w >= 0 ? 1 : -1;
-						}else{
-							directionLR = 0;
-						}
-						console.log("preX",preX);
-
+						
 						for (var i = 0; i < children.length; i++) {
 							$(children[i]).css("left", preLeft + w + "px");
 						};
@@ -162,38 +158,48 @@
 			};
 			var up = function(c) {
 
-				console.log(direction,directionLR);
-				if(directionLR && direction){
+				var w = c[0] - preX;
+				
+				if (Math.abs(w) > childW * 0.2 && !(preLeft >= 0 && w > 0)) {
 
-					var p = slide(directionLR, preLeft);
-
-					p.done(function() {
-
-					});
-
-				}else{
-					for (var i = 0; i < children.length; i++) {
-						$(children[i]).css("left", preLeft + "px");
+					moveFn = function() {
 					};
-				}
+			
+					var i = w > 0 ? 1 : -1;
+					var p = slide(i, preLeft);
+			
+					p.done(function() {
+						var currentLeft = $(children[0]).css("left");
+
+						if (currentLeft == "auto") {
+							preLeft = 0;
+						} else {
+							preLeft = Number(currentLeft.substring(0, currentLeft.length - 2));
+						}
+						direction = 0;
+					});
+				}				
+			};
+			var windowUp = function(){
+				
 				ifDown = false;
 				direction = 0;
-				directionLR = 0;
+
+				for (var i = 0; i < children.length; i++) {
+					$(children[i]).css("left", preLeft + "px");
+				};
 			};
 			var actions = [down, move, up];
 
 			return function(i, coords) {
-
-				$("#e").text(i);
-
 				if (i >= 0 && i <= 2) {
 					actions[i](coords);
 					return true;
-				} else if (i == -1) {
+				} else if(i==-1){
 					windowUp();
 					return true;
-				} else {
-
+				}else{
+					
 					return false;
 				}
 			};
