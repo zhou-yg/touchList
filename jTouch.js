@@ -34,27 +34,25 @@
 				events = eventTypesM;
 				ifDevice = false;
 			}
-			for (var i = 0; i < events.length; i++) {( function(i) {
-				
-						if (i == 2) {
-							window["on" + events[i]] = function(e) {
-								eventsHandle(i, [0, 0]);
-							};
-						} else {
+			for (var i = 0; i < events.length; i++) {
+				( function(i) {
+					if (i == 2) {
+						window["on" + events[i]] = function(e) {
+							eventsHandle(-1, [0, 0]);
+						};
+					}
+					container["on" + events[i]] = function(e) {
+	
+						var eventO = ifDevice ? e.touches[0] : e;
+						var x = eventO.pageX - $(this).offset().left;
+						var y = eventO.pageY - $(this).offset().top;
 
-							container["on" + events[i]] = function(e) {
-
-								var eventO = ifDevice ? e.touches[0] : e;
-								var x = eventO.pageX - $(this).offset().left;
-								var y = eventO.pageY - $(this).offset().top;
-
-								if (i == 1) {
-									windowType = eventO.type;
-								}
-								eventsHandle(i, [x, y]);
-							};
+						if (i == 1) {
+							windowType = eventO.type;
 						}
-					}(i));
+						eventsHandle(i, [x, y]);
+					};
+				}(i));
 			};
 
 			return {
@@ -142,33 +140,10 @@
 					var vertHandler = function(c) {
 
 						var w = c[0] - preX;
-						console.log(Math.abs(w), childW * 0.2);
-						if (Math.abs(w) > childW * 0.2 && !(preLeft>=0 && w>0)) {
-
-							moveFn = function() {
-							};
-
-							var i = w > 0 ? 1 : -1;
-							var p = slide(i, preLeft);
-
-							p.done(function() {
-
-								var currentLeft = $(children[0]).css("left");
-
-								if (currentLeft == "auto") {
-									preLeft = 0;
-								} else {
-									preLeft = Number(currentLeft.substring(0, currentLeft.length - 2));
-								}
-
-								direction = 0;
-							});
-						} else {
-
-							for (var i = 0; i < children.length; i++) {
-								$(children[i]).css("left", preLeft + w + "px");
-							};
-						}
+						
+						for (var i = 0; i < children.length; i++) {
+							$(children[i]).css("left", preLeft + w + "px");
+						};
 					};
 					var horiHandler = function(c) {
 
@@ -182,6 +157,31 @@
 				}
 			};
 			var up = function(c) {
+
+				var w = c[0] - preX;
+				
+				if (Math.abs(w) > childW * 0.2 && !(preLeft >= 0 && w > 0)) {
+
+					moveFn = function() {
+					};
+			
+					var i = w > 0 ? 1 : -1;
+					var p = slide(i, preLeft);
+			
+					p.done(function() {
+						var currentLeft = $(children[0]).css("left");
+
+						if (currentLeft == "auto") {
+							preLeft = 0;
+						} else {
+							preLeft = Number(currentLeft.substring(0, currentLeft.length - 2));
+						}
+						direction = 0;
+					});
+				}				
+			};
+			var windowUp = function(){
+				
 				ifDown = false;
 				direction = 0;
 
@@ -189,15 +189,17 @@
 					$(children[i]).css("left", preLeft + "px");
 				};
 			};
-
 			var actions = [down, move, up];
 
 			return function(i, coords) {
-
 				if (i >= 0 && i <= 2) {
 					actions[i](coords);
 					return true;
-				} else {
+				} else if(i==-1){
+					windowUp();
+					return true;
+				}else{
+					
 					return false;
 				}
 			};
