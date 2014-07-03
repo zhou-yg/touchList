@@ -1,16 +1,18 @@
 ( function(container) {
 
-		children = new Array();
+		var children = new Array();
 
 		//左右 =1  上下 = 2
 		var direction = 0;
 		//左 -1 右+1
 		var directionLR = 0;
 		//左边的滚动数，最高 children.length
-		var leftCounts=1;  
+		var leftCounts = 1;
 
 		var childW;
 		var windowType;
+
+		var theLeft;
 
 		var getChildes = function() {
 
@@ -18,7 +20,7 @@
 			childW = $(container).width() / cn.length;
 			for (var i = 0; i < cn.length; i++) {
 				children[i] = cn[i];
-				$(cn[i]).css("position", "relative").width(childW);
+				$(cn[i]).css("position", "relative").width(childW + "px");
 			};
 			$("#cw").text(childW + "px");
 		}();
@@ -49,6 +51,10 @@
 								var x = eventO.pageX - $(this).offset().left;
 								var y = eventO.pageY - $(this).offset().top;
 
+								if (i == 1) {
+									windowType = e.type;
+								}
+
 								eventsHandle(i, [x, y]);
 							};
 						}
@@ -63,7 +69,8 @@
 					if (direction == 1 && !this.ifBaneWindow) {
 
 						window["on" + windowType] = function(e) {
-
+							e.preventDefault();
+							e.stopPropagation();
 						};
 						this.ifBaneWindow = true;
 
@@ -147,7 +154,9 @@
 						} else {
 							directionLR = 0;
 						}
-						
+
+						theLeft = Math.abs(w);
+
 						for (var i = 0; i < children.length; i++) {
 							$(children[i]).css("left", preLeft + w + "px");
 						};
@@ -164,15 +173,16 @@
 				}
 			};
 			var up = function(c) {
-				
-				console.log(leftCounts,children.length);
 
-				if (directionLR && direction && (leftCounts<children.length || (leftCounts==children.length && directionLR>0))) {
-					
-					if(directionLR >0){
-						leftCounts --;
-					}else{
-						leftCounts ++;
+				console.log(leftCounts, children.length);
+
+				if (directionLR && direction && (leftCounts < children.length || (leftCounts == children.length && directionLR > 0))) {
+					console.log("up if");
+
+					if (directionLR > 0) {
+						leftCounts--;
+					} else {
+						leftCounts++;
 					}
 					var p = slide(directionLR, preLeft);
 
@@ -181,6 +191,7 @@
 					});
 
 				} else {
+					console.log("up else");
 					for (var i = 0; i < children.length; i++) {
 						$(children[i]).css("left", preLeft + "px");
 					};
@@ -217,25 +228,35 @@
 			var al = cl;
 
 			var speed = 45;
-			var count = 2;
-			var rate = Math.pow(2, 6);
+
+			var c = 2;
+			var rate = Math.pow(c, 6);
 
 			function go() {
-				if (count == rate) {
+				console.log(theLeft,childW);
+				if (theLeft / childW <= 0.6) {
+					if (c == rate) {
+						for (var i = 0; i < children.length; i++) {
+							$(children[i]).css("left", (cl + cdp) + "px");
+						};
+						$("#cl").text((cl + cdp) + "px");
+						dfd.resolve();
+					} else {
+
+						al = cdp / c + al;
+
+						for (var i = 0; i < children.length; i++) {
+							$(children[i]).css("left", al + "px");
+						};
+						c = c * 2;
+						setTimeout(go, speed);
+					}
+				} else {
 					for (var i = 0; i < children.length; i++) {
 						$(children[i]).css("left", (cl + cdp) + "px");
 					};
 					$("#cl").text((cl + cdp) + "px");
 					dfd.resolve();
-				} else {
-
-					al = cdp / count + al;
-
-					for (var i = 0; i < children.length; i++) {
-						$(children[i]).css("left", al + "px");
-					};
-					count = count * 2;
-					setTimeout(go, speed);
 				}
 			};
 			setTimeout(go, speed);
