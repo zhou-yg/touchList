@@ -12,12 +12,13 @@ var touchList = function(container) {
 	var childW;
 	var windowType;
 
-	var theLeft;
+	var moveLeft;
 
-	var initChildW = function(w) {
+	var initChildW = function() {
 
 		var protypes = ["margin", "padding"];
-		childW = $(children[0]).width();
+		
+		var w = $(children[0]).width();
 
 		protypes.forEach(function(i) {
 			var arr = $(children[0]).css(i).split(" ").map(function(i, elem) {
@@ -34,7 +35,6 @@ var touchList = function(container) {
 				w = w + arr[1] * 2;
 			}
 		});
-
 		return w;
 	};
 	var getChildes = function() {
@@ -43,8 +43,7 @@ var touchList = function(container) {
 		//childW = $(container).width() / cn.length;
 
 		//子节点的宽度
-		childW = initChildW(childW);
-
+		childW = initChildW();
 		//容器的宽度
 		var ctw = $(container).width();
 
@@ -188,7 +187,7 @@ var touchList = function(container) {
 						directionLR = 0;
 					}
 
-					theLeft = Math.abs(w);
+					moveLeft = Math.abs(w);
 
 					for (var i = 0; i < children.length; i++) {
 						$(children[i]).css("left", preLeft + w + "px");
@@ -208,13 +207,6 @@ var touchList = function(container) {
 		var up = function(c) {
 
 			if (!ifslide) {
-
-				console.log("condition 1 express", directionLR, leftCounts);
-				console.log("condition 1 result", !(directionLR > 0 && leftCounts == 1));
-
-				console.log("condition 2 express", directionLR, direction);
-
-				console.log("condition 3 result", !(leftCounts >= children.length && directionLR < 0));
 
 				if (!(directionLR > 0 && leftCounts == 1) && directionLR && direction && !(leftCounts >= children.length && directionLR < 0)) {
 
@@ -277,7 +269,7 @@ var touchList = function(container) {
 		var rate = Math.pow(c, 6);
 
 		function go() {
-			if (theLeft / childW <= 0.5) {
+			if (moveLeft / childW <= 0.5) {
 
 				if (c == rate) {
 
