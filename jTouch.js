@@ -258,10 +258,12 @@ var touchList = function(container) {
 	var slide = function(d, pl) {
 		// d=1 or d=-1;
 		var dfd = new $.Deferred();
-		//currentDisplacement  currentLeft addupLeft
-		var cdp = childW * d;
+		//currentDisplacement  需要滑动的距离
+		//currentLeft  元起点   
+		//addupLeft    已经滑动的距离
+		var cdp = ( childW - moveLeft ) * d;
 		var cl = pl;
-		var al = cl;
+		var al = cl + moveLeft * d;
 
 		var speed = 45;
 
@@ -269,12 +271,12 @@ var touchList = function(container) {
 		var rate = Math.pow(c, 6);
 
 		function go() {
-			if (moveLeft / childW <= 0.5) {
+			
 
 				if (c == rate) {
 
 					for (var i = 0; i < children.length; i++) {
-						$(children[i]).css("left", (cl + cdp) + "px");
+						$(children[i]).css("left", (cl + childW * d) + "px");
 					};
 
 					dfd.resolve();
@@ -289,13 +291,7 @@ var touchList = function(container) {
 					c = c * 2;
 					setTimeout(go, speed);
 				}
-			} else {
-				for (var i = 0; i < children.length; i++) {
-					$(children[i]).css("left", (cl + cdp) + "px");
-				};
-
-				dfd.resolve();
-			}
+				
 		};
 		setTimeout(go, speed);
 
