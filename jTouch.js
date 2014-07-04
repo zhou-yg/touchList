@@ -135,9 +135,6 @@
 						moveFn(c);
 					}
 
-					$("#cx").text(preX);
-					$("#cy").text(preY);
-
 					var oor = setEvents.onAndOff();
 				}
 			};
@@ -148,9 +145,11 @@
 					var vertHandler = function(c) {
 
 						var w = c[0] - preX;
-
-						if (Math.abs(w) > childW * 0.2 && !(preLeft >= 0 && w > 0)) {
-							directionLR = w >= 0 ? 1 : -1;
+						
+						$("#cx").text(Math.abs(w));
+						$("#cy").text(childW * 0.2);
+						if (Math.abs(w) > childW * 0.15) {
+							directionLR = (w >= 0 ? 1 : -1);
 						} else {
 							directionLR = 0;
 						}
@@ -173,21 +172,26 @@
 				}
 			};
 			var up = function(c) {
+				
+				moveFn = function(){};
 
-				console.log(leftCounts, children.length);
+				if (!(directionLR>0 && leftCounts==1) && directionLR && direction && !(leftCounts >= children.length && directionLR<0)) {
 
-				if (directionLR && direction && (leftCounts < children.length || (leftCounts == children.length && directionLR > 0))) {
-					console.log("up if");
-
-					if (directionLR > 0) {
-						leftCounts--;
-					} else {
-						leftCounts++;
-					}
 					var p = slide(directionLR, preLeft);
 
 					p.done(function() {
+
+						$("#d").text(directionLR);
+						if (directionLR > 0) {
+							leftCounts--;
+						} else {
+							leftCounts++;
+						}
+						$("#c").text(leftCounts);
+						
 						ifDown = false;
+						direction = 0;
+						directionLR = 0;
 					});
 
 				} else {
@@ -196,15 +200,13 @@
 						$(children[i]).css("left", preLeft + "px");
 					};
 					ifDown = false;
+					direction = 0;
+					directionLR = 0;
 				}
-				direction = 0;
-				directionLR = 0;
 			};
 			var actions = [down, move, up];
 
 			return function(i, coords) {
-
-				$("#e").text(i);
 
 				if (i >= 0 && i <= 2) {
 					actions[i](coords);
@@ -233,8 +235,7 @@
 			var rate = Math.pow(c, 6);
 
 			function go() {
-				console.log(theLeft,childW);
-				if (theLeft / childW <= 0.6) {
+				if (theLeft / childW <= 0.5) {
 					if (c == rate) {
 						for (var i = 0; i < children.length; i++) {
 							$(children[i]).css("left", (cl + cdp) + "px");
@@ -263,4 +264,4 @@
 
 			return dfd.promise();
 		};
-	}($("#boxes")[0]));
+}($("#boxes")[0]));
