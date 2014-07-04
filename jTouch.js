@@ -46,7 +46,10 @@
 							};
 						} else {
 							container["on" + events[i]] = function(e) {
-
+								
+								if(ifDevice){
+									$("#cl").text(e.touches.length);
+								}
 								var eventO = ifDevice ? e.touches[0] : e;
 								var x = eventO.pageX - $(this).offset().left;
 								var y = eventO.pageY - $(this).offset().top;
@@ -99,16 +102,25 @@
 			var moveFn = undefined;
 			var ifGone = false;
 
+			var ifslide = false;
+
+			var getPreLeft = function() {
+				
+				var currentLeft = $(children[0]).css("left");
+				
+				if (currentLeft == "auto") {
+					return 0;
+				} else {
+					return Number(currentLeft.substring(0, currentLeft.length - 2));
+				}
+			};
+
 			var down = function(c) {
 
-				if (!ifDown) {
-
-					var currentLeft = $(children[0]).css("left");
-					if (currentLeft == "auto") {
-						preLeft = 0;
-					} else {
-						preLeft = Number(currentLeft.substring(0, currentLeft.length - 2));
-					}
+				if (!ifDown && !ifslide) {
+					
+					 preLeft = getPreLeft();
+					
 					preX = c[0];
 					preY = c[1];
 
@@ -116,7 +128,7 @@
 				}
 			};
 			var move = function(c) {
-				if (ifDown) {
+				if (ifDown && !ifslide) {
 					var x = c[0];
 					var y = c[1];
 
@@ -145,7 +157,7 @@
 					var vertHandler = function(c) {
 
 						var w = c[0] - preX;
-						
+
 						$("#cx").text(Math.abs(w));
 						$("#cy").text(childW * 0.2);
 						if (Math.abs(w) > childW * 0.15) {
@@ -172,36 +184,41 @@
 				}
 			};
 			var up = function(c) {
-				
-				moveFn = function(){};
 
-				if (!(directionLR>0 && leftCounts==1) && directionLR && direction && !(leftCounts >= children.length && directionLR<0)) {
+				if (!ifslide) {
 
-					var p = slide(directionLR, preLeft);
+					if (!(directionLR > 0 && leftCounts == 1) && directionLR && direction && !(leftCounts >= children.length && directionLR < 0)) {
 
-					p.done(function() {
+						ifslide = true;
+						var p = slide(directionLR, preLeft);
 
-						$("#d").text(directionLR);
-						if (directionLR > 0) {
-							leftCounts--;
-						} else {
-							leftCounts++;
-						}
-						$("#c").text(leftCounts);
-						
+						p.done(function() {
+
+							$("#d").text(directionLR);
+							if (directionLR > 0) {
+								leftCounts--;
+							} else {
+								leftCounts++;
+							}
+							$("#c").text(leftCounts);
+
+							preLeft = getPreLeft();
+
+							ifDown = false;
+							direction = 0;
+							directionLR = 0;
+							ifslide = false;
+						});
+
+					} else {
+						console.log("up else");
+						for (var i = 0; i < children.length; i++) {
+							$(children[i]).css("left", preLeft + "px");
+						};
 						ifDown = false;
 						direction = 0;
 						directionLR = 0;
-					});
-
-				} else {
-					console.log("up else");
-					for (var i = 0; i < children.length; i++) {
-						$(children[i]).css("left", preLeft + "px");
-					};
-					ifDown = false;
-					direction = 0;
-					directionLR = 0;
+					}
 				}
 			};
 			var actions = [down, move, up];
@@ -210,9 +227,6 @@
 
 				if (i >= 0 && i <= 2) {
 					actions[i](coords);
-					return true;
-				} else if (i == -1) {
-					windowUp();
 					return true;
 				} else {
 
@@ -236,12 +250,15 @@
 
 			function go() {
 				if (theLeft / childW <= 0.5) {
+
 					if (c == rate) {
+
 						for (var i = 0; i < children.length; i++) {
 							$(children[i]).css("left", (cl + cdp) + "px");
 						};
-						$("#cl").text((cl + cdp) + "px");
+						
 						dfd.resolve();
+
 					} else {
 
 						al = cdp / c + al;
@@ -256,7 +273,7 @@
 					for (var i = 0; i < children.length; i++) {
 						$(children[i]).css("left", (cl + cdp) + "px");
 					};
-					$("#cl").text((cl + cdp) + "px");
+
 					dfd.resolve();
 				}
 			};
@@ -264,4 +281,4 @@
 
 			return dfd.promise();
 		};
-}($("#boxes")[0]));
+	}($("#boxes")[0]));
