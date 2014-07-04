@@ -1,4 +1,6 @@
-var touchList = function(container) {
+var touchList = function(_obj) {
+	
+	var container;
 
 	var children = new Array();
 
@@ -15,7 +17,7 @@ var touchList = function(container) {
 	var moveLeft;
 
 	var initChildW = function() {
-
+		
 		var protypes = ["margin", "padding"];
 		
 		var w = $(children[0]).width();
@@ -38,19 +40,27 @@ var touchList = function(container) {
 		return w;
 	};
 	var getChildes = function() {
+		
+		if(typeof _obj == "string"){
+			if(_obj[0] != "#"){
+				_obj = "#" + _obj;
+			}
+		}
+		
+		console.info(_obj);
+		
+		container = $(_obj)[0];
 
 		children = $(container).children();
 		//childW = $(container).width() / cn.length;
 
 		//子节点的宽度
 		childW = initChildW();
-		//容器的宽度
-		var ctw = $(container).width();
 
 		for (var i = 0; i < children.length; i++) {
 			$(children[i]).css("position", "relative");
 		};
-
+		
 	}();
 
 	var setEvents = function() {
@@ -272,7 +282,6 @@ var touchList = function(container) {
 
 		function go() {
 			
-
 				if (c == rate) {
 
 					for (var i = 0; i < children.length; i++) {
@@ -291,7 +300,6 @@ var touchList = function(container) {
 					c = c * 2;
 					setTimeout(go, speed);
 				}
-				
 		};
 		setTimeout(go, speed);
 

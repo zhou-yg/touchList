@@ -11,58 +11,34 @@
 			}
 			#container {
 				margin:0 auto;
-				background: black;
 				width: 90%;
 				height: 600px;
 				overflow: hidden;
 			}
 			#boxes {
-				width: 600%;
+				width: 500%;
 				height: 600px;
-				display: -moz-box;
-				display: -webkit-box;
-				display: box;
 			}
 			#boxes div {
+				width:20%;
 				height: 100%;
 				float: left;
 				cursor: default;
 			}
 			#box1 {
 				background: #EAD3FF;
-				-moz-box-flex: 1.0;
-				-webkit-box-flex: 1.0;
-				box-flex: 1.0;
 			}
 			#box2 {
 				background: #8C9DF3;
-				-moz-box-flex: 1.0;
-				-webkit-box-flex: 1.0;
-				box-flex: 1.0;
 			}
 			#box3 {
 				background: #65B7EE;
-				-moz-box-flex: 1.0;
-				-webkit-box-flex: 1.0;
-				box-flex: 1.0;
 			}
 			#box4 {
 				background: #D3FFF4;
-				-moz-box-flex: 1.0;
-				-webkit-box-flex: 1.0;
-				box-flex: 1.0;
 			}
 			#box5 {
 				background: #F3FFD3;
-				-moz-box-flex: 1.0;
-				-webkit-box-flex: 1.0;
-				box-flex: 1.0;
-			}
-			#box6 {
-				background: #FFD7D3;
-				-moz-box-flex: 1.0;
-				-webkit-box-flex: 1.0;
-				box-flex: 1.0;
 			}
 
 		</style>
@@ -92,13 +68,12 @@
 				<div id="box5">
 					<span>box5</span>
 				</div>
-				<div id="box6">
-					<span>box6</span>
-				</div>
 			</div>
 		</div>
 	</body>
 	<script type="text/javascript" src="jquery1x.js"></script>
 	<script type="text/javascript" src="jTouch.js"></script>
-	<script type="text/javascript" ></script>
+	<script type="text/javascript" >
+		touchList("#boxes");
+	</script>
 </html>
