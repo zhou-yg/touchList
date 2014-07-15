@@ -59,6 +59,7 @@ var touchList = function(_obj) {
 
 		for (var i = 0; i < children.length; i++) {
 			$(children[i]).css("position", "relative");
+			children[i].draggable = false;
 		};
 		
 	}();
