@@ -1,6 +1,7 @@
 var touchList = function(_obj) {
 	
 	var container;
+	var containerId;
 
 	var children = new Array();
 
@@ -46,9 +47,6 @@ var touchList = function(_obj) {
 				_obj = "#" + _obj;
 			}
 		}
-		
-		console.info(_obj);
-		
 		container = $(_obj)[0];
 
 		children = $(container).children();
@@ -59,7 +57,7 @@ var touchList = function(_obj) {
 
 		for (var i = 0; i < children.length; i++) {
 			$(children[i]).css("position", "relative");
-			children[i].draggable = false;
+			$("#"+container.id+" img")[i].draggable = true;
 		};
 		
 	}();
