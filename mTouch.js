@@ -21,23 +21,15 @@ var mTouch = function(_obj) {
 	var initChildW = function() {
 		
 		var protypes = ["margin", "padding"];
+		var positones = ["-left"+"-right"];
 		
 		var w = $(children[0]).width();
 
-		protypes.forEach(function(i) {
-			var arr = $(children[0]).css(i).split(" ").map(function(i, elem) {
-				if (elem == 1 || elem == 3) {
-					return Number(i.substring(0, i.length - 2));
-				} else {
-					return 0;
-				}
+		protypes.forEach(function(p1) {
+			positones.forEach(function(p2){
+				var p = $(children[0]).css(p1+p2);
+				w  = w + Number(p.substring(0,p.length-2));
 			});
-			if(arr.length==4){
-				w = w+arr[1]+arr[3];
-			}
-			if(arr.length==2){
-				w = w + arr[1] * 2;
-			}
 		});
 		return w;
 	};
@@ -71,7 +63,7 @@ var mTouch = function(_obj) {
 		var evnets;
 		var ifDevice = false;
 		var eventTypesM = ["mousedown", "mousemove", "mouseup"];
-		var eventTypesT = ["touchstart", "touchmove", "touchend"];
+		var eventTypesT = ["touchstart", "touchmove", "touchend","touchcancel"];
 
 		if ("createTouch" in document) {
 			events = eventTypesT;
@@ -85,6 +77,11 @@ var mTouch = function(_obj) {
 						window["on" + events[i]] = function(e) {
 							eventsHandle(i, [0, 0]);
 						};
+						if(events[i+1]){
+							window["on"+events[i]] = function(e){
+								eventsHandle(i,[0,0]);
+							};
+						}
 					} else {
 						parContainer["on" + events[i]] = function(e) {
 
