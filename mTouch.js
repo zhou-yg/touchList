@@ -1,4 +1,4 @@
-var touchList = function(_obj) {
+var mTouch = function(_obj) {
 	
 	var container;
 	var containerId;
