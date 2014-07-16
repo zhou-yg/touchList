@@ -1,5 +1,6 @@
 var mTouch = function(_obj) {
 	
+	var parContainer;
 	var container;
 	var containerId;
 
@@ -48,6 +49,7 @@ var mTouch = function(_obj) {
 			}
 		}
 		container = $(_obj)[0];
+		parContainer = $(_obj).parent()[0];
 
 		children = $(container).children();
 		//childW = $(container).width() / cn.length;
@@ -55,11 +57,9 @@ var mTouch = function(_obj) {
 		//子节点的宽度
 		childW = initChildW();
 
-		var imgEls = $("#"+container.id+" img");
+		$(container).css("position", "relative");
 
-		for (var i = 0; i < children.length; i++) {
-			$(children[i]).css("position", "relative");
-		};
+		var imgEls = $("#"+container.id+" img");
 		for (var i=0; i < imgEls.length; i++) {
 		  imgEls[i].draggable = false;
 		};
@@ -86,7 +86,7 @@ var mTouch = function(_obj) {
 							eventsHandle(i, [0, 0]);
 						};
 					} else {
-						container["on" + events[i]] = function(e) {
+						parContainer["on" + events[i]] = function(e) {
 
 							var eventO = ifDevice ? e.touches[0] : e;
 							var x = eventO.pageX - $(this).offset().left;
@@ -144,7 +144,7 @@ var mTouch = function(_obj) {
 
 		var getPreLeft = function() {
 
-			var currentLeft = $(children[0]).css("left");
+			var currentLeft = $(container).css("left");
 
 			if (currentLeft == "auto") {
 				return 0;
@@ -202,9 +202,7 @@ var mTouch = function(_obj) {
 
 					moveLeft = Math.abs(w);
 
-					for (var i = 0; i < children.length; i++) {
-						$(children[i]).css("left", preLeft + w + "px");
-					};
+					$(container).css("left", preLeft + w + "px");
 				};
 				var horiHandler = function(c) {
 
@@ -243,9 +241,9 @@ var mTouch = function(_obj) {
 					});
 
 				} else {
-					for (var i = 0; i < children.length; i++) {
-						$(children[i]).css("left", preLeft + "px");
-					};
+					
+					$(container).css("left", preLeft + "px");
+					
 					ifDown = false;
 					direction = 0;
 					directionLR = 0;
@@ -285,9 +283,7 @@ var mTouch = function(_obj) {
 			
 				if (c == rate) {
 
-					for (var i = 0; i < children.length; i++) {
-						$(children[i]).css("left", (cl + childW * d) + "px");
-					};
+					$(container).css("left", (cl + childW * d) + "px");
 
 					dfd.resolve();
 
@@ -295,9 +291,8 @@ var mTouch = function(_obj) {
 
 					al = cdp / c + al;
 
-					for (var i = 0; i < children.length; i++) {
-						$(children[i]).css("left", al + "px");
-					};
+					$(container).css("left", al + "px");
+					
 					c = c * 2;
 					setTimeout(go, speed);
 				}
