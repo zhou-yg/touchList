@@ -1,8 +1,5 @@
 $(document).ready( function(_global) {
 	
-	var container;
-	var containerId;
-
 	var u = new function(){
 		
 		this.getSpeed = function(_speed) {
@@ -67,7 +64,7 @@ $(document).ready( function(_global) {
 			return dfd.promise();
 		};
 	};
-	var ls = new function(_c){
+	var ls = new function(){
 
 		var lanternMod;
 
@@ -89,12 +86,16 @@ $(document).ready( function(_global) {
 			leftCounts = _lc;
 			speed = _s;
 			
-			directionLR  = _dlr;
+			if(directionLR){
+				directionLR  = _dlr;
+			}else{
+				directionLR = 1;
+			}
 			
 			speed = u.getSpeed(speed);
 			
 			if (speed && speed>=1000) {
-				setLanterSlide();
+				setLanterSlide(speed);
 			}
 		};
 		
@@ -106,7 +107,7 @@ $(document).ready( function(_global) {
 
 			var dfd = new $.Deferred();
 				
-			if (leftCounts == 1 || leftCounts == children.length) {
+			if (leftCounts == 1 || leftCounts == maxLength) {
 				_dlr = (_dlr > 0) ? -1 : 1;
 			}
 
@@ -145,6 +146,8 @@ $(document).ready( function(_global) {
 	var t = new function() {
 
 		var parContainer;
+		var container;
+		var containerId;
 
 		var children = new Array();
 		//左边的滚动数，最高 children.length
@@ -203,6 +206,7 @@ $(document).ready( function(_global) {
 				pick:eventsHandler.pick,
 			};
 			
+			ls.start(container,children.length,childWidth,leftCounts,_lanternSpeed);
 		};
 
 		function setEvents() {
