@@ -1,5 +1,6 @@
-$(document).ready(function() {
-	var mTouch = function(_obj) {
+$(document).ready( function(global) {
+
+	var t = function(_obj, _lanternSpeed) {
 
 		var parContainer;
 		var container;
@@ -9,46 +10,110 @@ $(document).ready(function() {
 
 		//左右 =1  上下 = 2
 		var direction = 0;
-		//左 -1 右+1
-		var directionLR = 0;
 		//左边的滚动数，最高 children.length
 		var leftCounts = 1;
 
 		var childW;
 		var windowType;
 
-		var moveLeft;
+		var lanternMod;
 
-		var initChildW = function() {
+		function getSpeed(_speed) {
 
-			var protypes = ["margin", "padding"];
-			var positones = ["-left" + "-right"];
+			var speedMod = ["fast", "normal", "slow"];
+			var speeds = [1000, 1750, 2500];
 
-			var w = $(children[0]).width();
+			if ( typeof _speed == "string") {
+				var s = speeds[speedMod.indexOf(_speed)];
+				return s;
+			} else if ( typeof _speed == "number") {
+				return _speed;
+			} else {
+				throw new Error("argument's type of speed is invalid");
+			}
+		}
 
-			protypes.forEach(function(p1) {
-				positones.forEach(function(p2) {
-					var p = $(children[0]).css(p1 + p2);
-					w = w + Number(p.substring(0, p.length - 2));
-				});
-			});
-			return w;
-		};
-		var getChildes = function() {
+		function getPreLeft() {
 
-			if ( typeof _obj == "string") {
-				if (_obj[0] != "#") {
-					_obj = "#" + _obj;
+			var currentLeft = $(container).css("left");
+
+			if (currentLeft == "auto") {
+				return 0;
+			} else {
+				return Number(currentLeft.substring(0, currentLeft.length - 2));
+			}
+		}
+
+		//滑动的动画过程,d：左还是右的方向，pl：总体已经的left，ml：当前拖动时，释放时的left
+		function slide(d, pl, ml) {
+			// d=1 or d=-1;
+			var dfd = new $.Deferred();
+			//currentDisplacement  需要滑动的距离
+			//currentLeft  元起点
+			//addupLeft    已经滑动的距离
+			var cdp = (childW - ml ) * d;
+			var cl = pl;
+			var al = cl + ml * d;
+
+			var speed = 45;
+
+			var c = 2;
+			var rate = Math.pow(c, 6);
+
+			function go() {
+
+				if (c == rate) {
+
+					$(container).css("left", (cl + childW * d) + "px");
+
+					dfd.resolve();
+
+				} else {
+
+					al = cdp / c + al;
+
+					$(container).css("left", al + "px");
+
+					c = c * 2;
+					setTimeout(go, speed);
+				}
+			};
+			setTimeout(go, speed);
+
+			return dfd.promise();
+		}
+
+		var getChildes = function(_o) {
+
+			if ( typeof _o == "string") {
+				if (_o[0] != "#") {
+					_o = "#" + _o;
 				}
 			}
-			container = $(_obj)[0];
-			parContainer = $(_obj).parent()[0];
+			container = $(_o)[0];
+			parContainer = $(_o).parent()[0];
 
 			children = $(container).children();
 			//childW = $(container).width() / cn.length;
 
 			//子节点的宽度
-			childW = initChildW();
+			childW = function() {
+
+				var protypes = ["margin", "padding"];
+				var positones = ["-left" + "-right"];
+
+				var w = $(children[0]).width();
+
+				protypes.forEach(function(p1) {
+					positones.forEach(function(p2) {
+						var p = $(children[0]).css(p1 + p2);
+						if (p) {
+							w = w + Number(p.substring(0, p.length - 2));
+						}
+					});
+				});
+				return w;
+			}();
 
 			$(container).css("position", "relative");
 
@@ -57,7 +122,7 @@ $(document).ready(function() {
 				imgEls[i].draggable = false;
 			};
 
-		}();
+		}(_obj);
 
 		var setEvents = function() {
 
@@ -74,13 +139,14 @@ $(document).ready(function() {
 				ifDevice = false;
 			}
 			for (var i = 0; i < events.length; i++) {( function(i) {
+				
 						if (i == 2) {
 							window["on" + events[i]] = function(e) {
-								eventsHandle(i, [0, 0]);
+								eventsHandle.handle(i, [0, 0]);
 							};
 							if (events[i + 1]) {
 								window["on" + events[i]] = function(e) {
-									eventsHandle(i, [0, 0]);
+									eventsHandle.handle(i, [0, 0]);
 								};
 							}
 						} else {
@@ -94,32 +160,32 @@ $(document).ready(function() {
 									windowType = e.type;
 								}
 
-								eventsHandle(i, [x, y]);
+								eventsHandle.handle(i, [x, y]);
 							};
 						}
 					}(i));
 			};
 
 			return {
-				ifBaneWindow : false,
+				ifbanWindow : false,
 
 				onAndOff : function() {
 
-					if (direction == 1 && !this.ifBaneWindow) {
+					if (direction == 1 && !this.ifbanWindow) {
 
 						window["on" + windowType] = function(e) {
 							e.preventDefault();
 							e.stopPropagation();
 						};
-						this.ifBaneWindow = true;
+						this.ifbanWindow = true;
 
-						return "bane window";
+						return "ban window";
 					}
-					if (direction == 2 && this.ifBaneWindow) {
+					if (direction == 2 && this.ifbanWindow) {
 						window["on" + windowType] = function() {
 						};
 
-						this.ifBaneWindow = false;
+						this.ifbanWindow = false;
 
 						return "save window";
 					};
@@ -134,24 +200,20 @@ $(document).ready(function() {
 			var preX;
 			var preY;
 
+			//左 -1 右+1
+			var directionLR = 0;
+			//当前，正在拖动时，已经往左的拖动路程
+			var moveLeft;
+
 			var ifDown = false;
 			var moveFn = undefined;
 			var ifGone = false;
 
 			var ifslide = false;
 
-			var getPreLeft = function() {
-
-				var currentLeft = $(container).css("left");
-
-				if (currentLeft == "auto") {
-					return 0;
-				} else {
-					return Number(currentLeft.substring(0, currentLeft.length - 2));
-				}
-			};
-
 			var down = function(c) {
+
+				clearTimeout(lanternMod);
 
 				if (!ifDown && !ifslide) {
 
@@ -164,16 +226,16 @@ $(document).ready(function() {
 				}
 			};
 			var move = function(c) {
+
 				if (ifDown && !ifslide) {
+
 					var x = c[0];
 					var y = c[1];
 
 					if (!direction) {
 						if (Math.abs(x - preX) >= Math.abs(y - preY)) {
-							//左右
 							direction = 1;
 						} else {
-							//上下
 							direction = 2;
 						}
 						moveFn = movehandle(direction);
@@ -220,7 +282,8 @@ $(document).ready(function() {
 					if (!(directionLR > 0 && leftCounts == 1) && directionLR && direction && !(leftCounts >= children.length && directionLR < 0)) {
 
 						ifslide = true;
-						var p = slide(directionLR, preLeft);
+
+						var p = slide(directionLR, preLeft, moveLeft);
 
 						p.done(function() {
 
@@ -250,55 +313,86 @@ $(document).ready(function() {
 			};
 			var actions = [down, move, up];
 
-			return function(i, coords) {
+			return {
+				ban : function() {
+					
+					ifDown = true;
+					direction = 1;
+					ifslide = true;
+				},
+				pick : function() {
 
-				if (i >= 0 && i <= 2) {
-					actions[i](coords);
-					return true;
-				} else {
+					ifDown = false;
+					direction = 0;
+					directionLR = 0;
+					ifslide = false;
+				},
+				handle : function(i, coords) {
+					
+					if (i >= 0 && i <= 2) {
+						actions[i](coords);
+						return true;
+					} else {
 
-					return false;
+						return false;
+					}
 				}
 			};
 		}();
-		//滑动的动画过程
-		var slide = function(d, pl) {
-			// d=1 or d=-1;
-			var dfd = new $.Deferred();
-			//currentDisplacement  需要滑动的距离
-			//currentLeft  元起点
-			//addupLeft    已经滑动的距离
-			var cdp = (childW - moveLeft ) * d;
-			var cl = pl;
-			var al = cl + moveLeft * d;
+		//如果需要自动滑动，即幻灯片,参数为滚动间隔，如果没有设置，则不滚动
+		var lanternSlide = function(_ls,dlr) {
 
-			var speed = 45;
+			if (_ls && _ls >= 1000) {
 
-			var c = 2;
-			var rate = Math.pow(c, 6);
-
-			function go() {
-
-				if (c == rate) {
-
-					$(container).css("left", (cl + childW * d) + "px");
-
-					dfd.resolve();
-
-				} else {
-
-					al = cdp / c + al;
-
-					$(container).css("left", al + "px");
-
-					c = c * 2;
-					setTimeout(go, speed);
+				
+				var dfd = new $.Deferred();
+				
+				if (leftCounts == 1 || leftCounts == children.length) {
+					dlr = (dlr > 0) ? -1 : 1;
 				}
-			};
-			setTimeout(go, speed);
 
-			return dfd.promise();
+				var pl = getPreLeft();
+				
+				var p = slide(dlr, pl, 0);
+				
+				p.done(function() {
+					
+					leftCounts = leftCounts + -1 * dlr;
+
+					dfd.resolve(dlr);
+				});
+				
+				return dfd.promise();
+			}
+		};
+		var setLanterSlide = function(_ls) {
+
+			function task(dlr){
+				
+				var p = lanternSlide(ls,dlr);
+				
+				if(p){
+					
+					p.done(function(dlr){
+						lanternMod = setTimeout(task,ls,dlr);
+					});
+				}
+			}
+
+			eventsHandle.ban();
+    	    //滑动方向  :左 -1，右+1
+			var directionLR = 1;
+
+			var ls = getSpeed(_ls);
+			
+			lanternMod = setTimeout(task,ls,directionLR);
+			
 		};
 	};
-	window.mTouch = m;
-});
+	var s = function(){
+		
+	}();
+
+	global.mTouch = t;
+
+}(window));
