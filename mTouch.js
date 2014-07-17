@@ -1,24 +1,11 @@
-$(document).ready( function(global) {
+$(document).ready( function(_global) {
+	
+	var container;
+	var containerId;
 
-	var t = function(_obj, _lanternSpeed) {
-
-		var parContainer;
-		var container;
-		var containerId;
-
-		var children = new Array();
-
-		//左右 =1  上下 = 2
-		var direction = 0;
-		//左边的滚动数，最高 children.length
-		var leftCounts = 1;
-
-		var childW;
-		var windowType;
-
-		var lanternMod;
-
-		function getSpeed(_speed) {
+	var u = new function(){
+		
+		this.getSpeed = function(_speed) {
 
 			var speedMod = ["fast", "normal", "slow"];
 			var speeds = [1000, 1750, 2500];
@@ -31,59 +18,146 @@ $(document).ready( function(global) {
 			} else {
 				throw new Error("argument's type of speed is invalid");
 			}
-		}
+		};
+		this.getLeft = function(_obj) {
 
-		function getPreLeft() {
-
-			var currentLeft = $(container).css("left");
+			var currentLeft = $(_obj).css("left");
 
 			if (currentLeft == "auto") {
 				return 0;
 			} else {
 				return Number(currentLeft.substring(0, currentLeft.length - 2));
 			}
-		}
-
-		//滑动的动画过程,d：左还是右的方向，pl：总体已经的left，ml：当前拖动时，释放时的left
-		function slide(d, pl, ml) {
+		};
+		//滑动的动画过程
+		//obj：滑动的对象，cw:单位滑动的距离,d：左还是右的方向,pl：总体已经的left,ml：当前拖动时，释放时的left
+		this.slide = function(_obj,_cw,_d, _pl, _ml) {
 			// d=1 or d=-1;
 			var dfd = new $.Deferred();
 			//currentDisplacement  需要滑动的距离
 			//currentLeft  元起点
 			//addupLeft    已经滑动的距离
-			var cdp = (childW - ml ) * d;
-			var cl = pl;
-			var al = cl + ml * d;
+			var cdp = (_cw - _ml ) * _d;
+			var al = _pl + _ml * _d;
 
 			var speed = 45;
-
 			var c = 2;
 			var rate = Math.pow(c, 6);
 
-			function go() {
+			function task() {
 
 				if (c == rate) {
 
-					$(container).css("left", (cl + childW * d) + "px");
+					$(_obj).css("left", (_pl + _cw * _d) + "px");
 
 					dfd.resolve();
 
 				} else {
 
 					al = cdp / c + al;
-
-					$(container).css("left", al + "px");
-
 					c = c * 2;
-					setTimeout(go, speed);
+
+					$(_obj).css("left", al + "px");
+
+					setTimeout(task, speed);
 				}
 			};
-			setTimeout(go, speed);
+			setTimeout(task, speed);
 
 			return dfd.promise();
-		}
+		};
+	};
+	var ls = new function(_c){
 
-		var getChildes = function(_o) {
+		var lanternMod;
+
+		var obj;
+		var maxLength;
+		var childWidth;
+		var leftCounts;
+		var speed;
+
+   	    //滑动方向  :左 -1，右+1
+		var directionLR;
+		
+		//以当前位置开始幻灯片
+		this.start = function(_obj,_ml,_cw,_lc,_s,_dlr){
+			
+			obj = _obj;
+			maxLength = _ml;
+			childWidth = _cw;
+			leftCounts = _lc;
+			speed = _s;
+			
+			directionLR  = _dlr;
+			
+			speed = u.getSpeed(speed);
+			
+			if (speed && speed>=1000) {
+				setLanterSlide();
+			}
+		};
+		
+		this.cancel = function(){
+			clearTimeout(lanternMod);
+		};
+		
+		lanternSlide = function(_ls,_dlr) {
+
+			var dfd = new $.Deferred();
+				
+			if (leftCounts == 1 || leftCounts == children.length) {
+				_dlr = (_dlr > 0) ? -1 : 1;
+			}
+
+			var pl = u.getLeft(obj);
+				
+			var p = u.slide(obj,childWidth,_dlr, pl, 0);
+				
+			p.done(function() {
+					
+				leftCounts = leftCounts + -1 * _dlr;
+
+				dfd.resolve(_dlr);
+			});
+			
+			return dfd.promise();
+		};
+		
+		setLanterSlide = function(_s) {
+
+			function task(_dlr){
+				
+				var p = lanternSlide(_s,_dlr);
+				
+				if(p){
+					
+					p.done(function(_dlr){
+						lanternMod = setTimeout(task,_s,_dlr);
+					});
+				}
+			}
+			
+			lanternMod = setTimeout(task,_s,directionLR);
+		};
+	};
+	
+	var t = new function() {
+
+		var parContainer;
+
+		var children = new Array();
+		//左边的滚动数，最高 children.length
+		var leftCounts = 1;
+		var childWidth;
+
+		//左右 =1  上下 = 2
+		var direction = 0;
+
+		var setEventers;
+		var eventsHandler;
+		
+		this.init = function(_o, _lanternSpeed) {
 
 			if ( typeof _o == "string") {
 				if (_o[0] != "#") {
@@ -94,19 +168,18 @@ $(document).ready( function(global) {
 			parContainer = $(_o).parent()[0];
 
 			children = $(container).children();
-			//childW = $(container).width() / cn.length;
 
 			//子节点的宽度
-			childW = function() {
+			childWidth = function() {
 
 				var protypes = ["margin", "padding"];
 				var positones = ["-left" + "-right"];
 
 				var w = $(children[0]).width();
 
-				protypes.forEach(function(p1) {
-					positones.forEach(function(p2) {
-						var p = $(children[0]).css(p1 + p2);
+				protypes.forEach(function(_p1) {
+					positones.forEach(function(_p2) {
+						var p = $(children[0]).css(_p1 + _p2);
 						if (p) {
 							w = w + Number(p.substring(0, p.length - 2));
 						}
@@ -121,10 +194,18 @@ $(document).ready( function(global) {
 			for (var i = 0; i < imgEls.length; i++) {
 				imgEls[i].draggable = false;
 			};
+			
+			eventsHandler = eventsHandle();
+			setEventers = setEvents();
+			
+			this.op = {
+				ban:eventsHandler.ban,
+				pick:eventsHandler.pick,
+			};
+			
+		};
 
-		}(_obj);
-
-		var setEvents = function() {
+		function setEvents() {
 
 			var evnets;
 			var ifDevice = false;
@@ -138,63 +219,32 @@ $(document).ready( function(global) {
 				events = eventTypesM;
 				ifDevice = false;
 			}
-			for (var i = 0; i < events.length; i++) {( function(i) {
+			for (var i = 0; i < events.length; i++) {( function(_i) {
 				
-						if (i == 2) {
-							window["on" + events[i]] = function(e) {
-								eventsHandle.handle(i, [0, 0]);
+						if (_i == 2) {
+							window["on" + events[_i]] = function() {
+								eventsHandler.handle(_i, [0, 0]);
 							};
-							if (events[i + 1]) {
-								window["on" + events[i]] = function(e) {
-									eventsHandle.handle(i, [0, 0]);
+							if (events[_i + 1]) {
+								window["on" + events[_i]] = function() {
+									eventsHandler.handle(_i, [0, 0]);
 								};
 							}
 						} else {
-							parContainer["on" + events[i]] = function(e) {
+							parContainer["on" + events[_i]] = function(_e) {
 
-								var eventO = ifDevice ? e.touches[0] : e;
+								var eventO = ifDevice ? _e.touches[0] : _e;
 								var x = eventO.pageX - $(this).offset().left;
 								var y = eventO.pageY - $(this).offset().top;
 
-								if (i == 1) {
-									windowType = e.type;
-								}
-
-								eventsHandle.handle(i, [x, y]);
+								eventsHandler.handle(_i, [x, y]);
 							};
 						}
 					}(i));
 			};
+		};
 
-			return {
-				ifbanWindow : false,
-
-				onAndOff : function() {
-
-					if (direction == 1 && !this.ifbanWindow) {
-
-						window["on" + windowType] = function(e) {
-							e.preventDefault();
-							e.stopPropagation();
-						};
-						this.ifbanWindow = true;
-
-						return "ban window";
-					}
-					if (direction == 2 && this.ifbanWindow) {
-						window["on" + windowType] = function() {
-						};
-
-						this.ifbanWindow = false;
-
-						return "save window";
-					};
-					return "nothing";
-				}
-			};
-		}();
-
-		var eventsHandle = function() {
+		function eventsHandle() {
 
 			var preLeft;
 			var preX;
@@ -211,27 +261,49 @@ $(document).ready( function(global) {
 
 			var ifslide = false;
 
-			var down = function(c) {
+			var windowEventObj = {
+				
+				ifbanWindow : false,
 
-				clearTimeout(lanternMod);
+				onAndOff : function() {
+
+					if (direction == 1 && !this.ifbanWindow) {
+
+						window["ontouchmove"] = function(_e) {
+							_e.preventDefault();
+							_e.stopPropagation();
+						};
+						
+						this.ifbanWindow = true;
+					}
+					if (direction == 2 && this.ifbanWindow) {
+						
+						window["ontouchmove"] = function() {
+						};
+
+						this.ifbanWindow = false;
+					};
+				}
+			};
+
+			var down = function(_c) {
 
 				if (!ifDown && !ifslide) {
 
-					preLeft = getPreLeft();
+					preLeft = u.getLeft(container);
 
-					preX = c[0];
-					preY = c[1];
+					preX = _c[0];
+					preY = _c[1];
 
 					ifDown = true;
 				}
 			};
-			var move = function(c) {
+			var move = function(_c) {
 
 				if (ifDown && !ifslide) {
 
-					var x = c[0];
-					var y = c[1];
-
+					var x = _c[0];
+					var y = _c[1];
 					if (!direction) {
 						if (Math.abs(x - preX) >= Math.abs(y - preY)) {
 							direction = 1;
@@ -240,21 +312,21 @@ $(document).ready( function(global) {
 						}
 						moveFn = movehandle(direction);
 					} else {
-						moveFn(c);
+						moveFn(_c);
 					}
 
-					var oor = setEvents.onAndOff();
+					var oor = windowEventObj.onAndOff();
 				}
 			};
-			var movehandle = function(d) {
+			var movehandle = function(_d) {
 
-				if (d == 1 || d == 2) {
+				if (_d == 1 || _d == 2) {
 
-					var vertHandler = function(c) {
+					var vertHandler = function(_c) {
 
-						var w = c[0] - preX;
+						var w = _c[0] - preX;
 
-						if (Math.abs(w) > childW * 0.15) {
+						if (Math.abs(w) > childWidth * 0.15) {
 							directionLR = (w >= 0 ? 1 : -1);
 						} else {
 							directionLR = 0;
@@ -264,18 +336,18 @@ $(document).ready( function(global) {
 
 						$(container).css("left", preLeft + w + "px");
 					};
-					var horiHandler = function(c) {
+					var horiHandler = function(_c) {
 
 					};
 
 					var handles = [vertHandler, horiHandler];
 
-					return handles[d - 1];
+					return handles[_d - 1];
 				} else {
 					throw ("not a correct direction in movehandle");
 				}
 			};
-			var up = function(c) {
+			var up = function(_c) {
 
 				if (!ifslide) {
 
@@ -283,7 +355,7 @@ $(document).ready( function(global) {
 
 						ifslide = true;
 
-						var p = slide(directionLR, preLeft, moveLeft);
+						var p = u.slide(container,childWidth,directionLR, preLeft, moveLeft);
 
 						p.done(function() {
 
@@ -293,7 +365,7 @@ $(document).ready( function(global) {
 								leftCounts++;
 							}
 
-							preLeft = getPreLeft();
+							preLeft = u.getLeft(container);
 
 							ifDown = false;
 							direction = 0;
@@ -327,72 +399,18 @@ $(document).ready( function(global) {
 					directionLR = 0;
 					ifslide = false;
 				},
-				handle : function(i, coords) {
+				handle : function(_i, _coords) {
 					
-					if (i >= 0 && i <= 2) {
-						actions[i](coords);
+					if (_i >= 0 && _i <= 2) {
+						actions[_i](_coords);
 						return true;
 					} else {
-
 						return false;
 					}
 				}
 			};
-		}();
-		//如果需要自动滑动，即幻灯片,参数为滚动间隔，如果没有设置，则不滚动
-		var lanternSlide = function(_ls,dlr) {
-
-			if (_ls && _ls >= 1000) {
-
-				
-				var dfd = new $.Deferred();
-				
-				if (leftCounts == 1 || leftCounts == children.length) {
-					dlr = (dlr > 0) ? -1 : 1;
-				}
-
-				var pl = getPreLeft();
-				
-				var p = slide(dlr, pl, 0);
-				
-				p.done(function() {
-					
-					leftCounts = leftCounts + -1 * dlr;
-
-					dfd.resolve(dlr);
-				});
-				
-				return dfd.promise();
-			}
-		};
-		var setLanterSlide = function(_ls) {
-
-			function task(dlr){
-				
-				var p = lanternSlide(ls,dlr);
-				
-				if(p){
-					
-					p.done(function(dlr){
-						lanternMod = setTimeout(task,ls,dlr);
-					});
-				}
-			}
-
-			eventsHandle.ban();
-    	    //滑动方向  :左 -1，右+1
-			var directionLR = 1;
-
-			var ls = getSpeed(_ls);
-			
-			lanternMod = setTimeout(task,ls,directionLR);
-			
 		};
 	};
-	var s = function(){
-		
-	}();
-
-	global.mTouch = t;
-
+	
+	_global.mTouch = t;
 }(window));
