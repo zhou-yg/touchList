@@ -48,6 +48,7 @@ $(document).ready( function(_global) {
 			});
 			return dfd.promise();
 		};
+<<<<<<< HEAD
 		this.stMedium = {
 			s:false,
 			t:true,
@@ -79,11 +80,11 @@ $(document).ready( function(_global) {
 				_bool?ls.update(_lc,_dlr,_pl):t.update(_lc,_dlr,_pl);
 			}
 		};
+=======
+>>>>>>> parent of 3c4696c... 优化调整结构2
 	};
 	var ls = new function(){
 
-		var ifInit = false;
-		
 		var lanternMod;
 
 		var obj;
@@ -97,7 +98,11 @@ $(document).ready( function(_global) {
 		var preLeft;
 		
 		//以当前位置开始幻灯片
+<<<<<<< HEAD
 		this.init = function(_obj,_ml,_cw,_lc,_s){
+=======
+		this.start = function(_obj,_ml,_cw,_lc,_s,_dlr){
+>>>>>>> parent of 3c4696c... 优化调整结构2
 			
 			obj = _obj;
 			maxLength = _ml;
@@ -109,24 +114,23 @@ $(document).ready( function(_global) {
 			
 			speed = u.getSpeed(speed);
 			
-			ifInit = true;
-		};
-		this.start = function(){
-			
-			if (ifInit && speed && speed>=1000) {
+			if (speed && speed>=1000) {
 				setLanterSlide(speed);
-			}else{
-				throw new Error("ls is not initialize or speed is invalid");
 			}
 		};
+		
 		this.cancel = function(){
 			clearTimeout(lanternMod);
 		};
+<<<<<<< HEAD
 		this.update = function(_lf,_dlr,_pl){
 			leftCounts = _lf;
 			directionLR = _dlr;
 			preLeft = _pl;
 		};
+=======
+		
+>>>>>>> parent of 3c4696c... 优化调整结构2
 		lanternSlide = function(_ls,_dlr) {
 
 			var dfd = new $.Deferred();
@@ -146,8 +150,13 @@ $(document).ready( function(_global) {
 			leftCounts = leftCounts + -1 * _dlr;
 			
 			p.done(function() {
+<<<<<<< HEAD
 				
 				u.stMedium.update(false,leftCounts,_dlr,preLeft);
+=======
+					
+				leftCounts = leftCounts + -1 * _dlr;
+>>>>>>> parent of 3c4696c... 优化调整结构2
 
 				dfd.resolve(_dlr);
 			});
@@ -162,9 +171,8 @@ $(document).ready( function(_global) {
 				var p = lanternSlide(_s,_dlr);
 				
 				if(p){
+					
 					p.done(function(_dlr){
-						
-						//幻灯片结束饿了，那么又可以拖动了
 						lanternMod = setTimeout(task,_s,_dlr);
 					});
 				}
@@ -241,6 +249,7 @@ $(document).ready( function(_global) {
 				pick:eventsHandler.pick,
 			};
 			
+<<<<<<< HEAD
 			ls.init(container,children.length,childWidth,leftCounts,_lanternSpeed);
 			
 			u.stMedium.lock();
@@ -250,6 +259,9 @@ $(document).ready( function(_global) {
 			leftCounts = _lc;
 			directionLR = _dlr;
 			preLeft = _pl;
+=======
+			ls.start(container,children.length,childWidth,leftCounts,_lanternSpeed);
+>>>>>>> parent of 3c4696c... 优化调整结构2
 		};
 
 		function setEvents() {
@@ -331,9 +343,7 @@ $(document).ready( function(_global) {
 			};
 
 			var down = function(_c) {
-				
-				u.stMedium.unlock();
-				
+
 				if (!ifDown && !ifslide) {
 
 					preX = _c[0];
@@ -411,9 +421,17 @@ $(document).ready( function(_global) {
 							}
 							
 							preLeft = u.getLeft(container);
+<<<<<<< HEAD
 							
 							u.stMedium.update(true,leftCounts,directionLR,preLeft);
 							u.stMedium.lock();
+=======
+
+							ifDown = false;
+							direction = 0;
+							directionLR = 0;
+							ifslide = false;
+>>>>>>> parent of 3c4696c... 优化调整结构2
 						});
 
 					} else {
