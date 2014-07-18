@@ -48,42 +48,9 @@ $(document).ready( function(_global) {
 			});
 			return dfd.promise();
 		};
-		this.stMedium = {
-			s:false,
-			t:true,
-			//锁定幻灯片
-			lock:function(){
-				if(!this.s && this.t){
-					//如果幻灯片开始了，禁止拖动
-					t.op.ban();
-					ls.start();
-					this.s = true;
-					this.t = false;
-				}
-			},
-			//解锁幻灯片
-			unlock:function(){
-				if(this.s && !this.t){
-					//如果开始脱了，禁止幻灯片
-					ls.cancel();
-					t.op.pick();
-					this.s = false;
-					this.t = true;
-				}
-			},
-			update:function(_bool,_lc,_dlr,_pl){
-				
-				$("#d").text(_dlr);
-				$("#c").text(_lc);
-				
-				_bool?ls.update(_lc,_dlr,_pl):t.update(_lc,_dlr,_pl);
-			}
-		};
 	};
 	var ls = new function(){
 
-		var ifInit = false;
-		
 		var lanternMod;
 
 		var obj;
@@ -97,7 +64,7 @@ $(document).ready( function(_global) {
 		var preLeft;
 		
 		//以当前位置开始幻灯片
-		this.init = function(_obj,_ml,_cw,_lc,_s){
+		this.start = function(_obj,_ml,_cw,_lc,_s,_dlr){
 			
 			obj = _obj;
 			maxLength = _ml;
@@ -109,24 +76,15 @@ $(document).ready( function(_global) {
 			
 			speed = u.getSpeed(speed);
 			
-			ifInit = true;
-		};
-		this.start = function(){
-			
-			if (ifInit && speed && speed>=1000) {
+			if (speed && speed>=1000) {
 				setLanterSlide(speed);
-			}else{
-				throw new Error("ls is not initialize or speed is invalid");
 			}
 		};
+		
 		this.cancel = function(){
 			clearTimeout(lanternMod);
 		};
-		this.update = function(_lf,_dlr,_pl){
-			leftCounts = _lf;
-			directionLR = _dlr;
-			preLeft = _pl;
-		};
+		
 		lanternSlide = function(_ls,_dlr) {
 
 			var dfd = new $.Deferred();
@@ -146,8 +104,7 @@ $(document).ready( function(_global) {
 			leftCounts = leftCounts + -1 * _dlr;
 			
 			p.done(function() {
-				
-				u.stMedium.update(false,leftCounts,_dlr,preLeft);
+				leftCounts = leftCounts + -1 * _dlr;
 
 				dfd.resolve(_dlr);
 			});
@@ -162,9 +119,8 @@ $(document).ready( function(_global) {
 				var p = lanternSlide(_s,_dlr);
 				
 				if(p){
+					
 					p.done(function(_dlr){
-						
-						//幻灯片结束饿了，那么又可以拖动了
 						lanternMod = setTimeout(task,_s,_dlr);
 					});
 				}
@@ -241,15 +197,7 @@ $(document).ready( function(_global) {
 				pick:eventsHandler.pick,
 			};
 			
-			ls.init(container,children.length,childWidth,leftCounts,_lanternSpeed);
-			
-			u.stMedium.lock();
-		};
-		
-		this.update = function(_lc,_dlr,_pl){
-			leftCounts = _lc;
-			directionLR = _dlr;
-			preLeft = _pl;
+			ls.start(container,children.length,childWidth,leftCounts,_lanternSpeed);
 		};
 
 		function setEvents() {
@@ -331,9 +279,7 @@ $(document).ready( function(_global) {
 			};
 
 			var down = function(_c) {
-				
-				u.stMedium.unlock();
-				
+
 				if (!ifDown && !ifslide) {
 
 					preX = _c[0];
@@ -411,9 +357,11 @@ $(document).ready( function(_global) {
 							}
 							
 							preLeft = u.getLeft(container);
-							
-							u.stMedium.update(true,leftCounts,directionLR,preLeft);
-							u.stMedium.lock();
+
+							ifDown = false;
+							direction = 0;
+							directionLR = 0;
+							ifslide = false;
 						});
 
 					} else {
