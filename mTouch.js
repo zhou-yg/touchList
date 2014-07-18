@@ -63,9 +63,41 @@ $(document).ready( function(_global) {
 
 			return dfd.promise();
 		};
+		this.stMedium = {
+			s:false,
+			t:true,
+			//锁定幻灯片
+			lock:function(){
+				console.log("lock",this.s,this.t);
+				if(!this.s && this.t){
+					//如果幻灯片开始了，禁止拖动
+					t.op.ban();
+					ls.start();
+					this.s = true;
+					this.t = false;
+				}
+			},
+			//解锁幻灯片
+			unlock:function(){
+				console.log("unlock",this.s,this.t);
+				if(this.s && !this.t){
+					//如果开始脱了，禁止幻灯片
+					ls.cancel();
+					t.op.pick();
+					this.s = false;
+					this.t = true;
+				}
+			},
+			update:function(_lc){
+				ls.updateLC(_lc);
+				t.updateLc(_lc);
+			}
+		};
 	};
 	var ls = new function(){
 
+		var ifInit = false;
+		
 		var lanternMod;
 
 		var obj;
@@ -78,7 +110,7 @@ $(document).ready( function(_global) {
 		var directionLR;
 		
 		//以当前位置开始幻灯片
-		this.start = function(_obj,_ml,_cw,_lc,_s,_dlr){
+		this.init = function(_obj,_ml,_cw,_lc,_s,_dlr){
 			
 			obj = _obj;
 			maxLength = _ml;
@@ -94,15 +126,22 @@ $(document).ready( function(_global) {
 			
 			speed = u.getSpeed(speed);
 			
-			if (speed && speed>=1000) {
+			ifInit = true;
+		};
+		this.start = function(){
+			
+			if (ifInit && speed && speed>=1000) {
 				setLanterSlide(speed);
+			}else{
+				throw new Error("ls is not initialize or speed is invalid");
 			}
 		};
-		
 		this.cancel = function(){
 			clearTimeout(lanternMod);
 		};
-		
+		this.updateLC = function(_lf){
+			leftCounts = _lf;
+		};
 		lanternSlide = function(_ls,_dlr) {
 
 			var dfd = new $.Deferred();
@@ -117,7 +156,7 @@ $(document).ready( function(_global) {
 				
 			p.done(function() {
 					
-				leftCounts = leftCounts + -1 * _dlr;
+				u.stMedium.update((leftCounts + -1 * _dlr));
 
 				dfd.resolve(_dlr);
 			});
@@ -132,8 +171,9 @@ $(document).ready( function(_global) {
 				var p = lanternSlide(_s,_dlr);
 				
 				if(p){
-					
 					p.done(function(_dlr){
+						
+						//幻灯片结束饿了，那么又可以拖动了
 						lanternMod = setTimeout(task,_s,_dlr);
 					});
 				}
@@ -206,7 +246,13 @@ $(document).ready( function(_global) {
 				pick:eventsHandler.pick,
 			};
 			
-			ls.start(container,children.length,childWidth,leftCounts,_lanternSpeed);
+			ls.init(container,children.length,childWidth,leftCounts,_lanternSpeed);
+			
+			u.stMedium.lock();
+		};
+		
+		this.updateLc = function(_lc){
+			leftCounts = _lc;
 		};
 
 		function setEvents() {
@@ -291,7 +337,9 @@ $(document).ready( function(_global) {
 			};
 
 			var down = function(_c) {
-
+				
+				u.stMedium.unlock();
+				
 				if (!ifDown && !ifslide) {
 
 					preLeft = u.getLeft(container);
@@ -375,6 +423,9 @@ $(document).ready( function(_global) {
 							direction = 0;
 							directionLR = 0;
 							ifslide = false;
+							
+							u.stMedium.updateLC(leftCounts);
+							u.stMedium.lock();
 						});
 
 					} else {
