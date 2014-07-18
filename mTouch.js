@@ -80,8 +80,6 @@ $(document).ready( function(_global) {
 	};
 	var ls = new function(){
 
-		var ifInit = false;
-		
 		var lanternMod;
 
 		var obj;
@@ -92,9 +90,10 @@ $(document).ready( function(_global) {
 
    	    //滑动方向  :左 -1，右+1
 		var directionLR;
+		var preLeft;
 		
 		//以当前位置开始幻灯片
-		this.init = function(_obj,_ml,_cw,_lc,_s,_dlr){
+		this.start = function(_obj,_ml,_cw,_lc,_s,_dlr){
 			
 			obj = _obj;
 			maxLength = _ml;
@@ -102,45 +101,39 @@ $(document).ready( function(_global) {
 			leftCounts = _lc;
 			speed = _s;
 			
-			if(directionLR){
-				directionLR  = _dlr;
-			}else{
-				directionLR = 1;
-			}
+			directionLR = 1;
 			
 			speed = u.getSpeed(speed);
 			
-			ifInit = true;
-		};
-		this.start = function(){
-			
-			if (ifInit && speed && speed>=1000) {
+			if (speed && speed>=1000) {
 				setLanterSlide(speed);
-			}else{
-				throw new Error("ls is not initialize or speed is invalid");
 			}
 		};
+		
 		this.cancel = function(){
 			clearTimeout(lanternMod);
 		};
-		this.updateLC = function(_lf){
-			leftCounts = _lf;
-		};
+		
 		lanternSlide = function(_ls,_dlr) {
 
 			var dfd = new $.Deferred();
 				
 			if (leftCounts == 1 || leftCounts == maxLength) {
 				_dlr = (_dlr > 0) ? -1 : 1;
+				console.log("x");
 			}
-
-			var pl = u.getLeft(obj);
+			
+			if(!preLeft){
+				preLeft = u.getLeft(obj);
+			}
 				
-			var p = u.slide(obj,childWidth,_dlr, pl, 0);
-				
+			var p = u.slide(obj,childWidth,_dlr, preLeft, 0);
+			
+			preLeft = preLeft + childWidth * _dlr;
+			leftCounts = leftCounts + -1 * _dlr;
+			
 			p.done(function() {
-					
-				u.stMedium.update((leftCounts + -1 * _dlr));
+				leftCounts = leftCounts + -1 * _dlr;
 
 				dfd.resolve(_dlr);
 			});
@@ -155,9 +148,8 @@ $(document).ready( function(_global) {
 				var p = lanternSlide(_s,_dlr);
 				
 				if(p){
+					
 					p.done(function(_dlr){
-						
-						//幻灯片结束饿了，那么又可以拖动了
 						lanternMod = setTimeout(task,_s,_dlr);
 					});
 				}
@@ -180,6 +172,10 @@ $(document).ready( function(_global) {
 
 		//左右 =1  上下 = 2
 		var direction = 0;
+		//左 -1 右+1
+		var directionLR = 0;
+
+		var preLeft;
 
 		var setEventers;
 		var eventsHandler;
@@ -230,13 +226,7 @@ $(document).ready( function(_global) {
 				pick:eventsHandler.pick,
 			};
 			
-			ls.init(container,children.length,childWidth,leftCounts,_lanternSpeed);
-			
-			u.stMedium.lock();
-		};
-		
-		this.updateLc = function(_lc){
-			leftCounts = _lc;
+			ls.start(container,children.length,childWidth,leftCounts,_lanternSpeed);
 		};
 
 		function setEvents() {
@@ -280,12 +270,9 @@ $(document).ready( function(_global) {
 
 		function eventsHandle() {
 
-			var preLeft;
 			var preX;
 			var preY;
 
-			//左 -1 右+1
-			var directionLR = 0;
 			//当前，正在拖动时，已经往左的拖动路程
 			var moveLeft;
 
@@ -321,12 +308,8 @@ $(document).ready( function(_global) {
 			};
 
 			var down = function(_c) {
-				
-				u.stMedium.unlock();
-				
-				if (!ifDown && !ifslide) {
 
-					preLeft = u.getLeft(container);
+				if (!ifDown && !ifslide) {
 
 					preX = _c[0];
 					preY = _c[1];
@@ -340,6 +323,7 @@ $(document).ready( function(_global) {
 
 					var x = _c[0];
 					var y = _c[1];
+					
 					if (!direction) {
 						if (Math.abs(x - preX) >= Math.abs(y - preY)) {
 							direction = 1;
@@ -400,7 +384,7 @@ $(document).ready( function(_global) {
 							} else {
 								leftCounts++;
 							}
-
+							
 							preLeft = u.getLeft(container);
 
 							ifDown = false;
@@ -410,7 +394,6 @@ $(document).ready( function(_global) {
 							
 							u.stMedium.update(leftCounts);
 							u.stMedium.lock();
-						});
 
 					} else {
 
@@ -419,6 +402,8 @@ $(document).ready( function(_global) {
 						ifDown = false;
 						direction = 0;
 						directionLR = 0;
+
+						u.stMedium.lock();
 					}
 				}
 			};
@@ -429,6 +414,7 @@ $(document).ready( function(_global) {
 					
 					ifDown = true;
 					direction = 1;
+					directionLR = 0;
 					ifslide = true;
 				},
 				pick : function() {
