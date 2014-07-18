@@ -419,10 +419,10 @@ $(document).ready( function(_global) {
 					} else {
 
 						$(container).css("left", preLeft + "px");
-						
+
 						ifDown = false;
 						direction = 0;
-						directionLR = 0;box1
+						directionLR = 0;
 
 						u.stMedium.lock();
 					}
