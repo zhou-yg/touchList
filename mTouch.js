@@ -40,26 +40,12 @@ $(document).ready( function(_global) {
 			var speed = 45;
 			var c = 2;
 			var rate = Math.pow(c, 6);
-
-			function task() {
-
-				if (c == rate) {
-
-					$(_obj).css("left", (_pl + _cw * _d) + "px");
-
-					dfd.resolve();
-
-				} else {
-
-					al = cdp / c + al;
-					c = c * 2;
-
-					$(_obj).css("left", al + "px");
-
-					setTimeout(task, speed);
-				}
-			};
-			setTimeout(task, speed);
+			
+			$(_obj).animate({
+				left:((_pl + _cw * _d) + "px")
+			},400,function(){
+				dfd.resolve();
+			});
 
 			return dfd.promise();
 		};
@@ -68,7 +54,6 @@ $(document).ready( function(_global) {
 			t:true,
 			//锁定幻灯片
 			lock:function(){
-				console.log("lock",this.s,this.t);
 				if(!this.s && this.t){
 					//如果幻灯片开始了，禁止拖动
 					t.op.ban();
@@ -79,7 +64,6 @@ $(document).ready( function(_global) {
 			},
 			//解锁幻灯片
 			unlock:function(){
-				console.log("unlock",this.s,this.t);
 				if(this.s && !this.t){
 					//如果开始脱了，禁止幻灯片
 					ls.cancel();
@@ -424,7 +408,7 @@ $(document).ready( function(_global) {
 							directionLR = 0;
 							ifslide = false;
 							
-							u.stMedium.updateLC(leftCounts);
+							u.stMedium.update(leftCounts);
 							u.stMedium.lock();
 						});
 
