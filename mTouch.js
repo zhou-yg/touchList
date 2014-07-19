@@ -180,7 +180,6 @@ $(document).ready( function(_global) {
 					});
 				}
 			}
-			
 			lanternMod = setTimeout(task,_s,directionLR);
 		};
 	};
@@ -205,8 +204,6 @@ $(document).ready( function(_global) {
 
 		var setEventers;
 		var eventsHandler;
-		
-		var ban = false;
 		
 		this.init = function(_o, _lanternSpeed) {
 
@@ -259,7 +256,16 @@ $(document).ready( function(_global) {
 		this.update = function(_lc){
 			leftCounts = _lc
 		};
-
+		function display(){
+			$("#state").text(arguments[0]);
+			$("#leftCounts").text(arguments[1]);
+			$("#childWidth").text(arguments[2]);
+			$("#direction").text(arguments[3]);
+			$("#directionLR").text(arguments[4]);
+			$("#preLeft").text(arguments[5]);
+			$("#ifDown").text(arguments[6]);
+			$("#ifSlide").text(arguments[7]);
+		}
 		function setEvents() {
 
 			var evnets;
@@ -312,9 +318,8 @@ $(document).ready( function(_global) {
 
 			var ifDown = false;
 			var moveFn = undefined;
-			var ifGone = false;
 
-			var ifslide = false;
+			var ifSlide = false;
 
 			var windowEventObj = {
 				
@@ -346,11 +351,11 @@ $(document).ready( function(_global) {
 				
 				switch(_t){
 				
-					case "down": r = !ifDown && !ifslide;break;
+					case "down": r = !ifDown && !ifSlide;break;
 				
-					case "move":r = ifDown && !ifslide;break;
+					case "move":r = ifDown && !ifSlide;break;
 				
-					case "up":r = !ifslide;break;
+					case "up":r = !ifSlide;break;
 				}
 				
 				return r;
@@ -358,6 +363,8 @@ $(document).ready( function(_global) {
 			var down = function(_c) {
 				
 				//u.stMedium.unlock();
+				
+				display("down",leftCounts,childWidth,direction,directionLR,preLeft,ifDown,ifSlide);
 
 				if (key("down")) {
 
@@ -370,6 +377,8 @@ $(document).ready( function(_global) {
 				}
 			};
 			var move = function(_c) {
+
+				display("move",leftCounts,childWidth,direction,directionLR,preLeft,ifDown,ifSlide);
 
 				if (key("move")) {
 
@@ -417,11 +426,12 @@ $(document).ready( function(_global) {
 			};
 			var up = function(_c) {
 
+
 				if (key("up")) {
 
 					if (!(directionLR > 0 && leftCounts == 1) && direction && !(leftCounts >= children.length && directionLR < 0)) {
 
-						ifslide = true;
+						ifSlide = true;
 
 						var p = u.slide(container,childWidth,directionLR, preLeft);
 
@@ -437,15 +447,16 @@ $(document).ready( function(_global) {
 
 							ifDown = false;
 							direction = 0;
-							ifslide = false;
+							ifSlide = false;
 							
+							display("up",leftCounts,childWidth,direction,directionLR,preLeft,ifDown,ifSlide);
 							//u.stMedium.update(leftCounts);
 							//u.stMedium.lock();
 						});
 
 					} else {
 						
-						ifslide = true;
+						ifSlide = true;
 						
 						var p = u.slide(container,0,-directionLR,preLeft);
 						
@@ -453,7 +464,9 @@ $(document).ready( function(_global) {
 							
 							ifDown = false;
 							direction = 0;
-							ifslide = false;
+							ifSlide = false;
+
+							display("up",leftCounts,childWidth,direction,directionLR,preLeft,ifDown,ifSlide);
 						});
 						//u.stMedium.lock();
 					}
