@@ -21,7 +21,7 @@ $(document).ready( function(_global) {
 			$(_obj)[0].onselectstart = function(_e){
 				_e.preventDefault();
 				return false;
-			}
+			};
 			
 			var objC = $(_obj).children();
 			
@@ -263,13 +263,13 @@ $(document).ready( function(_global) {
 			$("#direction").text(arguments[3]);
 			$("#directionLR").text(arguments[4]);
 			$("#preLeft").text(arguments[5]);
-			$("#ifDown").text(arguments[6]);
-			$("#ifSlide").text(arguments[7]);
+			$("#isDown").text(arguments[6]);
+			$("#isSlide").text(arguments[7]);
 		}
 		function setEvents() {
 
 			var evnets;
-			var ifDevice = false;
+			var isDevice = false;
 			var eventTypesM = ["mousedown", "mousemove", "mouseup"];
 			var eventTypesT = ["touchstart", "touchmove", "touchend", "touchcancel"];
 
@@ -278,7 +278,7 @@ $(document).ready( function(_global) {
 				ifDevice = true;
 			} else {
 				events = eventTypesM;
-				ifDevice = false;
+				isDevice = false;
 			}
 			for (var i = 0; i < events.length; i++) {( function(_i) {
 				
@@ -297,7 +297,7 @@ $(document).ready( function(_global) {
 						} else {
 							parContainer["on" + events[_i]] = function(_e) {
 
-								var eventO = ifDevice ? _e.touches[0] : _e;
+								var eventO = isDevice ? _e.touches[0] : _e;
 								var x = eventO.pageX - $(this).offset().left;
 								var y = eventO.pageY - $(this).offset().top;
 								
@@ -316,32 +316,32 @@ $(document).ready( function(_global) {
 			//当前，正在拖动时，已经往左的拖动路程
 			var moveLeft;
 
-			var ifDown = false;
+			var isDown = false;
 			var moveFn = undefined;
 
-			var ifSlide = false;
+			var isSlide = false;
 
 			var windowEventObj = {
 				
-				ifbanWindow : false,
+				isbanWindow : false,
 
 				onAndOff : function() {
 
-					if (direction == 1 && !this.ifbanWindow) {
+					if (direction == 1 && !this.isbanWindow) {
 
 						window["ontouchmove"] = function(_e) {
 							_e.preventDefault();
 							_e.stopPropagation();
 						};
 						
-						this.ifbanWindow = true;
+						this.isbanWindow = true;
 					}
-					if (direction == 2 && this.ifbanWindow) {
+					if (direction == 2 && this.isbanWindow) {
 						
 						window["ontouchmove"] = function() {
 						};
 
-						this.ifbanWindow = false;
+						this.isbanWindow = false;
 					};
 				}
 			};
@@ -351,11 +351,11 @@ $(document).ready( function(_global) {
 				
 				switch(_t){
 				
-					case "down": r = !ifDown && !ifSlide;break;
+					case "down": r = !isDown && !isSlide;break;
 				
-					case "move":r = ifDown && !ifSlide;break;
+					case "move":r = isDown && !isSlide;break;
 				
-					case "up":r = !ifSlide;break;
+					case "up":r = !isSlide;break;
 				}
 				
 				return r;
@@ -364,7 +364,7 @@ $(document).ready( function(_global) {
 				
 				//u.stMedium.unlock();
 				
-				display("down",leftCounts,childWidth,direction,directionLR,preLeft,ifDown,ifSlide);
+				display("down",leftCounts,childWidth,direction,directionLR,preLeft,isDown,isSlide);
 
 				if (key("down")) {
 
@@ -373,12 +373,12 @@ $(document).ready( function(_global) {
 
 					preLeft = u.getLeft(container);
 
-					ifDown = true;
+					isDown = true;
 				}
 			};
 			var move = function(_c) {
 
-				display("move",leftCounts,childWidth,direction,directionLR,preLeft,ifDown,ifSlide);
+				display("move",leftCounts,childWidth,direction,directionLR,preLeft,isDown,isSlide);
 
 				if (key("move")) {
 
@@ -431,7 +431,7 @@ $(document).ready( function(_global) {
 
 					if (!(directionLR > 0 && leftCounts == 1) && direction && !(leftCounts >= children.length && directionLR < 0)) {
 
-						ifSlide = true;
+						isSlide = true;
 
 						var p = u.slide(container,childWidth,directionLR, preLeft);
 
@@ -445,28 +445,28 @@ $(document).ready( function(_global) {
 							
 							preLeft = u.getLeft(container);
 
-							ifDown = false;
+							isDown = false;
 							direction = 0;
-							ifSlide = false;
+							isSlide = false;
 							
-							display("up",leftCounts,childWidth,direction,directionLR,preLeft,ifDown,ifSlide);
+							display("up",leftCounts,childWidth,direction,directionLR,preLeft,isDown,isSlide);
 							//u.stMedium.update(leftCounts);
 							//u.stMedium.lock();
 						});
 
 					} else {
 						
-						ifSlide = true;
+						isSlide = true;
 						
 						var p = u.slide(container,0,-directionLR,preLeft);
 						
 						p.done(function(){
 							
-							ifDown = false;
+							isDown = false;
 							direction = 0;
-							ifSlide = false;
+							isSlide = false;
 
-							display("up",leftCounts,childWidth,direction,directionLR,preLeft,ifDown,ifSlide);
+							display("up",leftCounts,childWidth,direction,directionLR,preLeft,isDown,isSlide);
 						});
 						//u.stMedium.lock();
 					}
