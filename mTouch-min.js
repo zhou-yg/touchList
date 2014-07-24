@@ -5,7 +5,7 @@ $(document).ready( function() {
 		this.getSpeed = function(_speed) {
 
 			var speedMod = ["fast", "normal", "slow"];
-			var speeds = [1000, 1750, 2500];
+			var speeds = [500, 1000, 1500];
 
 			if ( typeof _speed == "string") {
 				var s = speeds[speedMod.indexOf(_speed)];
@@ -85,7 +85,7 @@ $(document).ready( function() {
 		//左右 =1  上下 = 2
 		var direction = 0;
 		//左 -1 右+1,默认向右
-		var directionLR = 1;
+		var directionLR = 0;
 
 		var preLeft=0;
 
@@ -266,9 +266,12 @@ $(document).ready( function() {
 					var vertHandler = function(_c) {
 
 						var w = _c[0] - preX;
-
-						directionLR = (w >= 0 ? 1 : -1);
-
+						
+						if(Math.abs(w) > childWidth * 0.1){
+							directionLR = (w >= 0 ? 1 : -1);
+						}else{
+							directionLR = 0;
+						}
 						moveLeft = Math.abs(w);
 
 						$(container).css("left", preLeft + w + "px");
@@ -289,7 +292,7 @@ $(document).ready( function() {
 
 				if (key("up")) {
 
-					if (!(directionLR > 0 && leftCounts == 1) && direction && !(leftCounts >= children.length && directionLR < 0)) {
+					if (!(directionLR > 0 && leftCounts == 1) && direction && directionLR && !(leftCounts >= children.length && directionLR < 0)) {
 
 						isSlide = true;
 
@@ -314,7 +317,7 @@ $(document).ready( function() {
 						
 						isSlide = true;
 						
-						var p = u.slide(container,0,-directionLR,preLeft);
+						var p = u.slide(container,0,0,preLeft);
 						
 						p.done(function(){
 							
