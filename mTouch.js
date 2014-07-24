@@ -292,10 +292,9 @@ $(document).ready( function() {
 							};
 						} else {
 							parContainer["on" + events[_i]] = function(_e) {
-								alert("i:"+_i);
+								
 								var eventO = isDevice ? _e.touches[0] : _e;
 								var x = eventO.pageX - offSetLeft;
-								alert(eventO.pageX);
 								var y = eventO.pageY - offSetTop;
 								
 								eventsHandler.handle(_i, [x, y]);
