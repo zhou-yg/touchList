@@ -1,5 +1,4 @@
-$(document).ready( function(_global) {
-	
+$(document).ready( function() {
 	var u = new function(){
 		
 		this.getSpeed = function(_speed) {
@@ -24,8 +23,6 @@ $(document).ready( function(_global) {
 			};
 			
 			var objC = $(_obj).children();
-			
-			console.log(objC.length);
 			
 			if(objC.length == 0){
 				return;
@@ -138,7 +135,7 @@ $(document).ready( function(_global) {
 		};
 		this.update = function(_lc){
 			leftCounts = _lc;
-		}
+		};
 		
 		lanternSlide = function(_ls,_dlr) {
 
@@ -200,7 +197,7 @@ $(document).ready( function(_global) {
 		//左 -1 右+1,默认向右
 		var directionLR = 1;
 
-		var preLeft=0;
+		var preLeft = 0;
 
 		var setEventers;
 		var eventsHandler;
@@ -214,7 +211,7 @@ $(document).ready( function(_global) {
 			}
 			container = $(_o)[0];
 			parContainer = $(_o).parent()[0];
-
+			
 			children = $(container).children();
 
 			//子节点的宽度
@@ -235,6 +232,8 @@ $(document).ready( function(_global) {
 				});
 				return w;
 			}();
+			
+			
 
 			$(container).css("position", "relative");
 
@@ -246,15 +245,15 @@ $(document).ready( function(_global) {
 			*/
 			u.banDrag(container);
 			
-			eventsHandler = eventsHandle();
 			setEventers = setEvents();
+			eventsHandler = eventsHandle();
 			
 			//ls.init(container,children.length,childWidth,leftCounts,_lanternSpeed);
 			//u.stMedium.lock();
 		};
 		
 		this.update = function(_lc){
-			leftCounts = _lc
+			leftCounts = _lc;
 		};
 		function display(){
 			$("#state").text(arguments[0]);
@@ -262,20 +261,24 @@ $(document).ready( function(_global) {
 			$("#childWidth").text(arguments[2]);
 			$("#direction").text(arguments[3]);
 			$("#directionLR").text(arguments[4]);
-			$("#preLeft").text(arguments[5]);
-			$("#isDown").text(arguments[6]);
-			$("#isSlide").text(arguments[7]);
+			$("#preX").text(arguments[5]);
+			$("#preLeft").text(arguments[6]);
+			$("#isDown").text(arguments[7]);
+			$("#isSlide").text(arguments[8]);
 		}
 		function setEvents() {
 
 			var evnets;
 			var isDevice = false;
 			var eventTypesM = ["mousedown", "mousemove", "mouseup"];
-			var eventTypesT = ["touchstart", "touchmove", "touchend", "touchcancel"];
+			var eventTypesT = ["touchstart", "touchmove", "touchend"];
+
+			var offSetLeft = $(container).offset().left;
+			var offSetTop  = $(container).offset().top;
 
 			if ("createTouch" in document) {
 				events = eventTypesT;
-				ifDevice = true;
+				isDevice = true;
 			} else {
 				events = eventTypesM;
 				isDevice = false;
@@ -287,25 +290,20 @@ $(document).ready( function(_global) {
 			
 								eventsHandler.handle(_i, [0, 0]);
 							};
-							if (events[_i + 1]) {
-			
-								window["on" + events[_i]] = function() {
-			
-									eventsHandler.handle(_i, [0, 0]);
-								};
-							}
 						} else {
 							parContainer["on" + events[_i]] = function(_e) {
-
+								alert("i:"+_i);
 								var eventO = isDevice ? _e.touches[0] : _e;
-								var x = eventO.pageX - $(this).offset().left;
-								var y = eventO.pageY - $(this).offset().top;
+								var x = eventO.pageX - offSetLeft;
+								alert(eventO.pageX);
+								var y = eventO.pageY - offSetTop;
 								
 								eventsHandler.handle(_i, [x, y]);
 							};
 						}
 					}(i));
 			};
+			$("#error").text("ready");
 		};
 		//如果用户的动作传进来了，那么就做响应处理
 		function eventsHandle() {
@@ -328,8 +326,8 @@ $(document).ready( function(_global) {
 				onAndOff : function() {
 
 					if (direction == 1 && !this.isbanWindow) {
-
-						window["ontouchmove"] = function(_e) {
+						
+						window.ontouchmove = function(_e) {
 							_e.preventDefault();
 							_e.stopPropagation();
 						};
@@ -337,8 +335,8 @@ $(document).ready( function(_global) {
 						this.isbanWindow = true;
 					}
 					if (direction == 2 && this.isbanWindow) {
-						
-						window["ontouchmove"] = function() {
+							
+						window.ontouchmove = function() {
 						};
 
 						this.isbanWindow = false;
@@ -364,7 +362,7 @@ $(document).ready( function(_global) {
 				
 				//u.stMedium.unlock();
 				
-				display("down",leftCounts,childWidth,direction,directionLR,preLeft,isDown,isSlide);
+				display("down",leftCounts,childWidth,direction,directionLR,preX,preLeft,isDown,isSlide);
 
 				if (key("down")) {
 
@@ -378,7 +376,7 @@ $(document).ready( function(_global) {
 			};
 			var move = function(_c) {
 
-				display("move",leftCounts,childWidth,direction,directionLR,preLeft,isDown,isSlide);
+				display("move",leftCounts,childWidth,direction,directionLR,preX,preLeft,isDown,isSlide);
 
 				if (key("move")) {
 
@@ -405,23 +403,27 @@ $(document).ready( function(_global) {
 
 					var vertHandler = function(_c) {
 
+						$("#error").text(_c[0]+"="+_c[1]+"="+preX);
+				
 						var w = _c[0] - preX;
+						
+						//$("#error").text(w+"px");
 
 						directionLR = (w >= 0 ? 1 : -1);
-
+		
 						moveLeft = Math.abs(w);
 
 						$(container).css("left", preLeft + w + "px");
 					};
 					var horiHandler = function(_c) {
-
 					};
 
 					var handles = [vertHandler, horiHandler];
 
 					return handles[_d - 1];
 				} else {
-					throw ("not a correct direction in movehandle");
+					$("#error").text("moveFn throw");
+					throw new Error("not a correct direction in movehandle");
 				}
 			};
 			var up = function(_c) {
@@ -449,7 +451,7 @@ $(document).ready( function(_global) {
 							direction = 0;
 							isSlide = false;
 							
-							display("up",leftCounts,childWidth,direction,directionLR,preLeft,isDown,isSlide);
+							display("up",leftCounts,childWidth,direction,directionLR,preX,preLeft,isDown,isSlide);
 							//u.stMedium.update(leftCounts);
 							//u.stMedium.lock();
 						});
@@ -466,7 +468,7 @@ $(document).ready( function(_global) {
 							direction = 0;
 							isSlide = false;
 
-							display("up",leftCounts,childWidth,direction,directionLR,preLeft,isDown,isSlide);
+							display("up",leftCounts,childWidth,direction,directionLR,preX,preLeft,isDown,isSlide);
 						});
 						//u.stMedium.lock();
 					}
@@ -489,6 +491,5 @@ $(document).ready( function(_global) {
 			};
 		};
 	};
-	
-	_global.mTouch = t;
-}(window));
+	window.mTouch = t;
+});

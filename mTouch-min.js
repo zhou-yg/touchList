@@ -1,4 +1,4 @@
-$(document).ready( function(_global) {
+$(document).ready( function() {
 	
 	var u = new function(){
 		
@@ -132,18 +132,21 @@ $(document).ready( function(_global) {
 		};
 		
 		this.update = function(_lc){
-			leftCounts = _lc
+			leftCounts = _lc;
 		};
 		function setEvents() {
 
 			var evnets;
 			var isDevice = false;
 			var eventTypesM = ["mousedown", "mousemove", "mouseup"];
-			var eventTypesT = ["touchstart", "touchmove", "touchend", "touchcancel"];
+			var eventTypesT = ["touchstart", "touchmove", "touchend"];
+
+			var offSetLeft = $(container).offset().left;
+			var offSetTop  = $(container).offset().top;
 
 			if ("createTouch" in document) {
 				events = eventTypesT;
-				ifDevice = true;
+				isDevice = true;
 			} else {
 				events = eventTypesM;
 				isDevice = false;
@@ -155,25 +158,22 @@ $(document).ready( function(_global) {
 			
 								eventsHandler.handle(_i, [0, 0]);
 							};
-							if (events[_i + 1]) {
-			
-								window["on" + events[_i]] = function() {
-			
-									eventsHandler.handle(_i, [0, 0]);
-								};
-							}
 						} else {
 							parContainer["on" + events[_i]] = function(_e) {
 
+								alert("i:"+_i);
 								var eventO = isDevice ? _e.touches[0] : _e;
-								var x = eventO.pageX - $(this).offset().left;
-								var y = eventO.pageY - $(this).offset().top;
+								var x = eventO.pageX - offSetLeft;
+								alert("x:"+eventO.pageX);
+								var y = eventO.pageY - offSetTop;
+								
 								
 								eventsHandler.handle(_i, [x, y]);
 							};
 						}
 					}(i));
 			};
+			$("#error").text("ready");
 		};
 		//如果用户的动作传进来了，那么就做响应处理
 		function eventsHandle() {
@@ -345,5 +345,5 @@ $(document).ready( function(_global) {
 			};
 		};
 	};
-	_global.mTouch = t;
-}(window));
+	window.mTouch = t;
+});
