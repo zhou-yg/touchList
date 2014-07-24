@@ -92,7 +92,9 @@ $(document).ready( function() {
 		var setEventers;
 		var eventsHandler;
 		
-		this.init = function(_o, _lanternSpeed) {
+		var callBack;
+		
+		this.init = function(_o, _lanternSpeed,_callBack) {
 
 			if ( typeof _o == "string") {
 				if (_o[0] != "#") {
@@ -129,6 +131,8 @@ $(document).ready( function() {
 			
 			eventsHandler = eventsHandle();
 			setEventers = setEvents();
+			
+			callBack = _callBack();
 		};
 		
 		this.update = function(_lc){
@@ -305,9 +309,16 @@ $(document).ready( function() {
 							} else {
 								leftCounts++;
 							}
-							
 							preLeft = u.getLeft(container);
-
+							
+							if(_callBack){
+								
+							}
+							
+							if(callBack){
+								callBack();
+							}
+							
 							isDown = false;
 							direction = 0;
 							isSlide = false;
@@ -321,10 +332,13 @@ $(document).ready( function() {
 						
 						p.done(function(){
 							
+							if(callBack){
+								callBack();
+							}
+							
 							isDown = false;
 							direction = 0;
 							isSlide = false;
-
 						});
 					}
 				}
