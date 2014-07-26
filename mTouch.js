@@ -25,8 +25,6 @@ $(document).ready( function(_global) {
 			
 			var objC = $(_obj).children();
 			
-			console.log(objC.length);
-			
 			if(objC.length == 0){
 				return;
 			}
@@ -185,7 +183,7 @@ $(document).ready( function(_global) {
 	};
 	
 	var t = new function() {
-
+		//dom object
 		var parContainer;
 		var container;
 		var containerId;
@@ -208,12 +206,12 @@ $(document).ready( function(_global) {
 		this.init = function(_o, _lanternSpeed) {
 
 			if ( typeof _o == "string") {
-				if (_o[0] != "#") {
-					_o = "#" + _o;
+				if (_o[0] == "#") {
+					_o = _o.substr(1);
 				}
 			}
-			container = $(_o)[0];
-			parContainer = $(_o).parent()[0];
+			container = document.getElementById(_o);
+			parContainer = container.parentElement;
 
 			children = $(container).children();
 
@@ -363,9 +361,6 @@ $(document).ready( function(_global) {
 			var down = function(_c) {
 				
 				//u.stMedium.unlock();
-				
-				display("down",leftCounts,childWidth,direction,directionLR,preLeft,ifDown,ifSlide);
-
 				if (key("down")) {
 
 					preX = _c[0];
@@ -374,6 +369,8 @@ $(document).ready( function(_global) {
 					preLeft = u.getLeft(container);
 
 					ifDown = true;
+
+					display("down",leftCounts,childWidth,direction,directionLR,preLeft,ifDown,ifSlide);
 				}
 			};
 			var move = function(_c) {
