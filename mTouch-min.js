@@ -1,10 +1,11 @@
 $(document).ready( function() {
+	
 	var u = new function(){
 		
 		this.getSpeed = function(_speed) {
 
 			var speedMod = ["fast", "normal", "slow"];
-			var speeds = [1000, 1750, 2500];
+			var speeds = [500, 1000, 1500];
 
 			if ( typeof _speed == "string") {
 				var s = speeds[speedMod.indexOf(_speed)];
@@ -58,8 +59,6 @@ $(document).ready( function() {
 		this.slide = function(_obj,_cw,_d, _pl) {
 			// d=1 or d=-1;
 			var dfd = new $.Deferred();
-			//currentLeft  元起点
-			//addupLeft    已经滑动的距离
 
 			var speed = 45;
 			
@@ -71,118 +70,9 @@ $(document).ready( function() {
 
 			return dfd.promise();
 		};
-		this.stMedium = {
-			s:false,
-			t:true,
-			//锁定幻灯片
-			lock:function(){
-				if(!this.s && this.t){
-					//如果幻灯片开始了，禁止拖动
-					ls.start();
-					this.s = true;
-					this.t = false;
-				}
-			},
-			//解锁幻灯片
-			unlock:function(){
-				if(this.s && !this.t){
-					//如果开始脱了，禁止幻灯片
-					ls.cancel();
-					this.s = false;
-					this.t = true;
-				}
-			},
-			update:function(_lc){
-				ls.update(_lc);
-				t.update(_lc);
-			}
-		};
 	};
-	var ls = new function(){
-
-		var lanternMod;
-
-		var obj;
-		var maxLength;
-		var childWidth;
-		var leftCounts;
-		var speed;
-
-   	    //滑动方向  :左 -1，右+1
-		var directionLR;
-		var preLeft;
-		
-		//以当前位置开始幻灯片
-		this.init = function(_obj,_ml,_cw,_lc,_s,_dlr){
-			
-			obj = _obj;
-			maxLength = _ml;
-			childWidth = _cw;
-			leftCounts = _lc;
-			speed = _s;
-			
-			directionLR = 1;
-			
-			speed = u.getSpeed(speed);
-		};
-		this.start = function(){
-			if (speed && speed>=1000) {
-				setLanterSlide(speed);
-			}
-		};
-		this.cancel = function(){
-			clearTimeout(lanternMod);
-		};
-		this.update = function(_lc){
-			leftCounts = _lc;
-		};
-		
-		lanternSlide = function(_ls,_dlr) {
-
-			var dfd = new $.Deferred();
-				
-			if (leftCounts == 1 || leftCounts == maxLength) {
-				_dlr = (_dlr > 0) ? -1 : 1;
-			}
-			
-			if(!preLeft){
-				preLeft = u.getLeft(obj);
-			}
-				
-			var p = u.slide(obj,childWidth,_dlr, preLeft);
-			
-			preLeft = preLeft + childWidth * _dlr;
-			leftCounts = leftCounts + -1 * _dlr;
-			
-			p.done(function() {
-				
-				u.stMedium.update(leftCounts);
-
-				dfd.resolve(_dlr);
-			});
-			
-			return dfd.promise();
-		};
-		
-		setLanterSlide = function(_s) {
-
-			function task(_dlr){
-				
-				var p = lanternSlide(_s,_dlr);
-				
-				if(p){
-					
-					p.done(function(_dlr){
-						lanternMod = setTimeout(task,_s,_dlr);
-					});
-				}
-			}
-			lanternMod = setTimeout(task,_s,directionLR);
-		};
-	};
-	
 	var t = new function() {
-		//dom object
+
 		var parContainer;
 		var container;
 		var containerId;
@@ -195,23 +85,25 @@ $(document).ready( function() {
 		//左右 =1  上下 = 2
 		var direction = 0;
 		//左 -1 右+1,默认向右
-		var directionLR = 1;
+		var directionLR = 0;
 
-		var preLeft = 0;
+		var preLeft=0;
 
 		var setEventers;
 		var eventsHandler;
 		
-		this.init = function(_o, _lanternSpeed) {
+		var callBack;
+		
+		this.init = function(_o, _lanternSpeed,_callBack) {
 
 			if ( typeof _o == "string") {
-				if (_o[0] == "#") {
-					_o = _o.substr(1);
+				if (_o[0] != "#") {
+					_o = "#" + _o;
 				}
 			}
 			container = $(_o)[0];
 			parContainer = $(_o).parent()[0];
-			
+
 			children = $(container).children();
 
 			//子节点的宽度
@@ -232,40 +124,20 @@ $(document).ready( function() {
 				});
 				return w;
 			}();
-			
-			
 
 			$(container).css("position", "relative");
 
-			/*
-			var imgEls = $("#" + container.id + " img");
-			for (var i = 0; i < imgEls.length; i++) {
-				imgEls[i].draggable = false;
-			};
-			*/
 			u.banDrag(container);
 			
-			setEventers = setEvents();
 			eventsHandler = eventsHandle();
+			setEventers = setEvents();
 			
-			//ls.init(container,children.length,childWidth,leftCounts,_lanternSpeed);
-			//u.stMedium.lock();
+			callBack = _callBack();
 		};
 		
 		this.update = function(_lc){
 			leftCounts = _lc;
 		};
-		function display(){
-			$("#state").text(arguments[0]);
-			$("#leftCounts").text(arguments[1]);
-			$("#childWidth").text(arguments[2]);
-			$("#direction").text(arguments[3]);
-			$("#directionLR").text(arguments[4]);
-			$("#preX").text(arguments[5]);
-			$("#preLeft").text(arguments[6]);
-			$("#isDown").text(arguments[7]);
-			$("#isSlide").text(arguments[8]);
-		}
 		function setEvents() {
 
 			var evnets;
@@ -292,10 +164,11 @@ $(document).ready( function() {
 							};
 						} else {
 							parContainer["on" + events[_i]] = function(_e) {
-								
+
 								var eventO = isDevice ? _e.touches[0] : _e;
 								var x = eventO.pageX - offSetLeft;
 								var y = eventO.pageY - offSetTop;
+								
 								
 								eventsHandler.handle(_i, [x, y]);
 							};
@@ -325,8 +198,8 @@ $(document).ready( function() {
 				onAndOff : function() {
 
 					if (direction == 1 && !this.isbanWindow) {
-						
-						window.ontouchmove = function(_e) {
+
+						window["ontouchmove"] = function(_e) {
 							_e.preventDefault();
 							_e.stopPropagation();
 						};
@@ -334,8 +207,8 @@ $(document).ready( function() {
 						this.isbanWindow = true;
 					}
 					if (direction == 2 && this.isbanWindow) {
-							
-						window.ontouchmove = function() {
+						
+						window["ontouchmove"] = function() {
 						};
 
 						this.isbanWindow = false;
@@ -359,9 +232,6 @@ $(document).ready( function() {
 			};
 			var down = function(_c) {
 				
-				//u.stMedium.unlock();
-				
-				display("down",leftCounts,childWidth,direction,directionLR,preX,preLeft,isDown,isSlide);
 				if (key("down")) {
 
 					preX = _c[0];
@@ -373,8 +243,6 @@ $(document).ready( function() {
 				}
 			};
 			var move = function(_c) {
-
-				display("move",leftCounts,childWidth,direction,directionLR,preX,preLeft,isDown,isSlide);
 
 				if (key("move")) {
 
@@ -401,27 +269,26 @@ $(document).ready( function() {
 
 					var vertHandler = function(_c) {
 
-						$("#error").text(_c[0]+"="+_c[1]+"="+preX);
-				
 						var w = _c[0] - preX;
 						
-						//$("#error").text(w+"px");
-
-						directionLR = (w >= 0 ? 1 : -1);
-		
+						if(Math.abs(w) > childWidth * 0.1){
+							directionLR = (w >= 0 ? 1 : -1);
+						}else{
+							directionLR = 0;
+						}
 						moveLeft = Math.abs(w);
 
 						$(container).css("left", preLeft + w + "px");
 					};
 					var horiHandler = function(_c) {
+
 					};
 
 					var handles = [vertHandler, horiHandler];
 
 					return handles[_d - 1];
 				} else {
-					$("#error").text("moveFn throw");
-					throw new Error("not a correct direction in movehandle");
+					throw ("not a correct direction in movehandle");
 				}
 			};
 			var up = function(_c) {
@@ -429,7 +296,7 @@ $(document).ready( function() {
 
 				if (key("up")) {
 
-					if (!(directionLR > 0 && leftCounts == 1) && direction && !(leftCounts >= children.length && directionLR < 0)) {
+					if (!(directionLR > 0 && leftCounts == 1) && direction && directionLR && !(leftCounts >= children.length && directionLR < 0)) {
 
 						isSlide = true;
 
@@ -442,33 +309,37 @@ $(document).ready( function() {
 							} else {
 								leftCounts++;
 							}
-							
 							preLeft = u.getLeft(container);
-
+							
+							if(_callBack){
+								
+							}
+							
+							if(callBack){
+								callBack();
+							}
+							
 							isDown = false;
 							direction = 0;
 							isSlide = false;
-							
-							display("up",leftCounts,childWidth,direction,directionLR,preX,preLeft,isDown,isSlide);
-							//u.stMedium.update(leftCounts);
-							//u.stMedium.lock();
 						});
 
 					} else {
 						
 						isSlide = true;
 						
-						var p = u.slide(container,0,-directionLR,preLeft);
+						var p = u.slide(container,0,0,preLeft);
 						
 						p.done(function(){
+							
+							if(callBack){
+								callBack();
+							}
 							
 							isDown = false;
 							direction = 0;
 							isSlide = false;
-
-							display("up",leftCounts,childWidth,direction,directionLR,preX,preLeft,isDown,isSlide);
 						});
-						//u.stMedium.lock();
 					}
 				}
 				

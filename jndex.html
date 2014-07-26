@@ -44,14 +44,17 @@
 		</style>
 	</head>
 	<body>
+		error:<span id="error" style="color:red">0</span><br />
 		state:<span id="state">null</span><br />
 		leftCounts:<span id="leftCounts">0</span><br />
-		childWidth:<span id="childWitdh">0</span><br />
+		childWidth:<span id="childWidth">0</span><br />
 		direction:<span id="direction">0</span><br />
 		directionLR :<span id="directionLR">0</span><br />
+		preX:<span id="preX">0</span><br />
 		preLeft:<span id="preLeft">0</span><br />
-		ifDown:<span id="ifDown">0</span><br />
-		ifSlide:<span id="ifSlide">0</span><br />
+		ifDown:<span id="isDown">0</span><br />
+		ifSlide:<span id="isSlide">0</span><br />
+		
 		<div id="container">
 			<div id="boxes">
 				<div id ="box1">
@@ -73,8 +76,11 @@
 		</div>
 	</body>
 	<script type="text/javascript" src="jquery1x.js"></script>
-	<script type="text/javascript" src="mTouch.js"></script>
+	<script type="text/javascript" src="mTouch-min.js"></script>
 	<script type="text/javascript" >
-		mTouch.init("#boxes","fast");
+	$(document).ready(function(){
+		mTouch.init("boxes","fast");
+		//mTouch("boxes");
+	});
 	</script>
 </html>
