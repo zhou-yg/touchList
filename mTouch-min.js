@@ -132,7 +132,7 @@ $(document).ready( function() {
 			eventsHandler = eventsHandle();
 			setEventers = setEvents();
 			
-			callBack = _callBack();
+			callBack = _callBack;
 		};
 		
 		this.update = function(_lc){
@@ -310,10 +310,6 @@ $(document).ready( function() {
 								leftCounts++;
 							}
 							preLeft = u.getLeft(container);
-							
-							if(_callBack){
-								
-							}
 							
 							if(callBack){
 								callBack();
