@@ -71,7 +71,7 @@ $(document).ready( function() {
 			return dfd.promise();
 		};
 	};
-	var t = new function() {
+	var T = function() {
 
 		var parContainer;
 		var container;
@@ -158,6 +158,8 @@ $(document).ready( function() {
 			for (var i = 0; i < events.length; i++) {( function(_i) {
 				
 						if (_i == 2) {
+							//如果在同一页面多次使用此框架，会引起bug
+							//可将window修改成parContainer
 							window["on" + events[_i]] = function() {
 			
 								eventsHandler.handle(_i, [0, 0]);
@@ -356,5 +358,5 @@ $(document).ready( function() {
 			};
 		};
 	};
-	window.mTouch = t;
+	window.mTouch = T;
 });
